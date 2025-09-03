@@ -1,0 +1,18 @@
+<html lang = "rus">
+    <head>
+        <title>Lab1</title>
+        <link rel="stylesheet" href="/static/styles/index_style.css">
+    </head>
+     <header>
+        <h1>
+            <a href = "/"><img src="/static/img/logo.svg" alt="home"></a>
+        </h1>
+    </header>
+    <div class="order-card">
+        <img src="http://localhost:9000/test/{{ .order.Photo }}" alt="img" class = "image">
+        <div class = "column" style = "display: flex; flex-direction: column; gap: 10px;">
+            <h1>{{ .order.Title }}</h1>
+            <p>{{ .order.Price }} руб.</p>
+        </div>
+    </div>
+</html>

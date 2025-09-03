@@ -1,0 +1,31 @@
+<html lang = "rus">
+    <head>
+        <title>Lab1</title>
+        <link rel="stylesheet" href="/static/styles/index_style.css">
+    </head>
+     <header>
+        <h1>
+            <a href = "/"><img src="/static/img/logo.svg" alt="home"></a>
+        </h1>
+    </header>
+        <div class="container-2">
+            {{ range .orders }}
+            <div class="order-card" style = "height: 300px;">
+                <img src="http://localhost:9000/test/{{ .Photo }}" alt="img"  style = "width: 300px; height: 300px;" class = "image">
+                <div class = "column" style = "display: flex; flex-direction: column; gap: 10px;">
+                    <h1>{{ .Title }}</h1>
+                    <p>{{ .Price }} руб.</p>
+                    <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px; ">
+                        <input type="text" style = "margin-right: 32px; margin-top: 20px; width: 235px; height: 30px;" name="query" placeholder="Введите мощность">
+                        <button type="submit" style = "margin-top: 20px; width: 65px; height: 30px;">Сохранить</button>
+                        <button type = "submit" style = "margin-left: 100px; width: 50px; height: 50px; justify-content: flex-end;"><img src="/static/img/trash.svg" style = "height: 50px; width: 50px;" alt="del"></button>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        <div class = "row" style = "display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; margin-top: 30px">
+            <button type="submit" style = "background-color: #DE231E; border-radius: 6px; color: white; width: 168; height: 40px;">Оформить заявку</button>
+            <button type="submit" style = "background-color: white; border-radius: 6px; border: 1 px solid #DE231E; color: #DE231E; width: 168; height: 40px;">Удалить заявку</button>
+        </div>
+</html>

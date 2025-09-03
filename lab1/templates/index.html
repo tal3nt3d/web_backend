@@ -1,0 +1,32 @@
+<html lang = "rus">
+    <head>
+        <title>Lab1</title>
+        <link rel="stylesheet" href="/static/styles/index_style.css">
+    </head>
+    <header>
+        <h1>
+            <a href = "/"><img src="/static/img/logo.svg" alt="home"></a>
+        </h1>
+        <form action="/" method="GET">
+            <input type="text" name="query" style = "width: 690px; height: 48px;" placeholder="Найти товар" value = "{{ .query }}">
+        <button type="submit" style = "position: relative; left: -50px; width: 40px; height: 40px;  margin-top: 50 px;">🔎</button>
+    </form>
+    </header>
+    <div class="space">
+        <div class="container">
+            {{ range .orders}}
+            <div class="card">
+                <img src="http://localhost:9000/test/{{ .Photo }}" alt="img" class = "image">
+                <h1 style = "min-height: 33.6px;">{{ .Title }}</h1>
+                <p>{{ .Price }} руб.</p>
+                <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px;   ">
+                    <a href="/order/{{ .ID }}" class = "card-button">Подробнее</a>
+                    <a href="/" class = "card-application-button">Добавить</a>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+
+    <a href="/cart" class = "app-button"><img src="/static/img/shopping-basket.svg"  style = "height: 100px; width: 100px;"alt="Корзина"></a></div>
+</html>
