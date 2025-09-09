@@ -5,28 +5,33 @@
     </head>
     <header>
         <h1>
-            <a href = "/"><img src="/static/img/logo.svg" alt="home"></a>
+            <a href = "/" style = "color: #DE231E; text-decoration: none;">Домой</a>
         </h1>
         <form action="/" method="GET">
-            <input type="text" name="query" style = "width: 690px; height: 48px;" placeholder="Найти товар" value = "{{ .query }}">
+            <input type="text" name="query" style = "width: 690px; height: 48px;" placeholder="Найти устройство" value = "{{ .query }}">
         <button type="submit" style = "position: relative; left: -50px; width: 40px; height: 40px;  margin-top: 50 px;">🔎</button>
     </form>
     </header>
     <div class="space">
         <div class="container">
-            {{ range .orders}}
+            {{ range .devices }}
             <div class="card">
                 <img src="http://localhost:9000/test/{{ .Photo }}" alt="img" class = "image">
                 <h1 style = "min-height: 33.6px;">{{ .Title }}</h1>
-                <p>{{ .Price }} руб.</p>
-                <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px;   ">
+                <p>{{ .Power }} кВт</p>
+                <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px; align-self: start; margin-left: 20px;">
                     <a href="/order/{{ .ID }}" class = "card-button">Подробнее</a>
-                    <a href="/" class = "card-application-button">Добавить</a>
+    
                 </div>
             </div>
             {{ end }}
         </div>
     </div>
 
-    <a href="/cart" class = "app-button"><img src="/static/img/shopping-basket.svg"  style = "height: 100px; width: 100px;"alt="Корзина"></a></div>
+    <a href="/cart" class="app-button" style = "width: 130px; height: 130px;">
+        <img src="/static/img/wrench.svg" style="height: 100px; width: 100px;" alt="Корзина">
+        {{ if .cartCount }}
+            <span class="cart-badge">{{ .cartCount }}</span>
+        {{ end }}
+    </a>
 </html>

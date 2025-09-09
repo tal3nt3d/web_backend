@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"time"
 	"strconv"
 )
 
@@ -19,31 +18,37 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) GetOrders(ctx *gin.Context) {
-	var orders []repository.Order
+func (h *Handler) GetDevices(ctx *gin.Context) {
+	var devices []repository.Device
 	var err error
 
 	searchQuery := ctx.Query("query")
 	if searchQuery == "" {
-		orders, err = h.Repository.GetOrders()
+		devices, err = h.Repository.GetDevices()
 		if err != nil {
 			logrus.Error(err)
 		}
 	} else {
-		orders, err = h.Repository.GetOrderByTitle(searchQuery)
+		devices, err = h.Repository.GetDeviceByTitle(searchQuery)
 		if err != nil {
 			logrus.Error(err)
 		}
 	}
 
+	cartDevices, err := h.Repository.GetCart()
+    cartCount := 0
+    if err == nil {
+        cartCount = len(cartDevices)
+    }
+
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"time": time.Now().Format("15:04:05"),
-		"orders": orders,
+		"devices": devices,
 		"query": searchQuery,
+		"cartCount": cartCount,
 	})
 }
 
-func (h *Handler) GetOrder(ctx *gin.Context) {
+func (h *Handler) GetDevice(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
 	id, err := strconv.Atoi(idStr)
@@ -51,28 +56,27 @@ func (h *Handler) GetOrder(ctx *gin.Context) {
 		logrus.Error(err)
 	}
 
-	order, err := h.Repository.GetOrder(id)
+	device, err := h.Repository.GetDevice(id)
 	if err != nil {
 		logrus.Error(err)
 	}
 
 	ctx.HTML(http.StatusOK, "order.html", gin.H{
-		"order": order,
+		"device": device,
 	})
 }
 
 func (h *Handler) GetCart(ctx *gin.Context) {
-	var orders []repository.Order
+	var devices []repository.Device
 	var err error
 
-	orders, err = h.Repository.GetCart()
+	devices, err = h.Repository.GetCart()
 	if err != nil {
 		logrus.Error(err)
 		}
 
+		
 	ctx.HTML(http.StatusOK, "cart.html", gin.H{
-		"time": time.Now().Format("15:04:05"),
-		"orders": orders,
-
+		"service_devices": devices,
 	})
 }

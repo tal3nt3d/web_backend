@@ -34,6 +34,14 @@ header button{
     border-radius: 6px;
 }
 
+header button:hover{
+    background-color: #B91D19;
+}
+
+header button:active{
+    background-color: #751714;
+}
+
 .space{
     width: 55%;
     margin-left: auto;
@@ -47,15 +55,10 @@ header button{
 
 .container-2{
     display: grid;
-    grid-template-rows: repeat(1, 1fr);
-    gap: 10px;
-}
-
-.container-2 input{
-    border-color:#E8E8EC;
-    border-width: 2px;
-    font-size: 16px;
-    border-radius: 6px;
+    gap: 20px;
+    width: 1143px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .container-2 button{
@@ -120,6 +123,10 @@ header button{
     background-color: #B91D19;
 }
 
+.card-button:active{
+    background-color: #751714;
+}
+
 .card-application-button{
     width: 75px;
     height: 40px;
@@ -159,16 +166,16 @@ header button{
 }
 
 .order-card{
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-    width: 1100px;
-    height: 500px;
+    width: 1143px;
+    height: 200px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
     background-color: #ffffff;
+    border-radius: 6px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .order-card h1{
@@ -187,4 +194,45 @@ header button{
     height: 400px;
     border-radius: 6px;
     object-fit: cover;
+}
+
+.order-card button:hover{
+    background-color: #dcd6d6;
+}
+
+.order-card button:active{
+    background-color: #cfb5b5;
+}
+
+.container-3{
+    min-height: 38px;
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    background-color: white;
+    width: 1143px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.counter button{
+    width: 24px;
+    height: 24px; 
+    justify-content: flex-end; 
+    border-radius: 0px; 
+    background-color: #F3F3F7; 
+    border: none; 
+    color: black;
+}
+
+.counter button:hover{
+    background-color: #d1cbcb;
+}
+
+.counter button:active{
+    background-color: #b19b9b;
 }

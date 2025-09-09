@@ -5,14 +5,15 @@
     </head>
      <header>
         <h1>
-            <a href = "/"><img src="/static/img/logo.svg" alt="home"></a>
+            <a href = "/" style = "color: #DE231E; text-decoration: none;">Домой</a>
         </h1>
     </header>
-    <div class="order-card">
-        <img src="http://localhost:9000/test/{{ .order.Photo }}" alt="img" class = "image">
-        <div class = "column" style = "display: flex; flex-direction: column; gap: 10px;">
-            <h1>{{ .order.Title }}</h1>
-            <p>{{ .order.Price }} руб.</p>
+    <div class="order-card" style = "height: 400px;">
+        <img src="http://localhost:9000/test/{{ .device.Photo }}" alt="img" class = "image">
+        <div class = "row" style = "display: flex; flex-direction: column; gap: 10px;">
+            <h1>{{ .device.Title }}</h1>
+            <p>{{ .device.Power }} кВт</p>
+            <p>{{ .device.Description }}</p>
         </div>
     </div>
 </html>
