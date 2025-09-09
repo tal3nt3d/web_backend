@@ -26,7 +26,7 @@ func (r *Repository) GetDevices() ([]Device, error) {
 			ID: 1,
 			Title: "Ноутбук HUAWEI MateBook D 16 MCLG-X",
 			Power: 0.065,
-			Photo: "photo_53144771654101б20689_x.jpg",
+			Photo: "photo_5314477165410120689_x.jpg",
 			Description: "Мощный ноутбук, подходит для компьютерных игр и работы",
 		},
 		{
