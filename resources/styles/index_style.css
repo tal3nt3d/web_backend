@@ -56,7 +56,7 @@ header button:active{
 .container-2{
     display: grid;
     gap: 20px;
-    width: 1143px;
+    width: 1273px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -166,7 +166,7 @@ header button:active{
 }
 
 .order-card{
-    width: 1143px;
+    width: 1273px;
     height: 200px;
     display: flex;
     flex-direction: row;
@@ -214,9 +214,16 @@ header button:active{
     text-align: center;
     align-items: center;
     background-color: white;
-    width: 1143px;
+    width: 1273px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.container-3 p{
+    max-height: 24px;
+    text-align: left;
+    margin: 0;
+    display: block;
 }
 
 .counter button{

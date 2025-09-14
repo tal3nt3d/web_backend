@@ -9,26 +9,24 @@
         </h1>
     </header>
     <div class="container-3" >
-        <p style="width: 220px; margin-left: 239px">Наименование товара</p>
+        <p style="width: 220px; margin-left: 236px">Наименование товара</p>
         <p style="width: 104px; margin-left: 177px">Мощность</p>
-        <p style="width: 104px; margin-left: 19px;">Кол-во ед.</p>
-        <p style="width: 119px; margin-left: 18px;">Лимит: 63А</p>
+        <p style="width: 104px; margin-left: 25px;">Кол-во ед.</p>
+        <p style="width: 91px; margin-left: 18px;">Нагрузка</p>
+        <p style="width: 83px; margin-left: 18px;">Заметка</p>
+        <p style="width: 104px; margin-left: 39px; font-weight: 500;">Лимит (А):</p>
+        <input type="text" name="query" style = "width: 40px; height: 24px; border:2px solid#E8E8EC; font-size: 16px; border-radius: 12px; align-content: center; text-align: center;">
     </div>
         <div class="container-2">
             {{ range .service_devices }}
             <div class="order-card">
-                <img src="http://localhost:9000/test/{{ .Photo }}" alt="img"  style = "width: 200px; height: 200px; margin-left: 20px;" class = "image">
+                <img src="http://localhost:9000/test/{{ .Photo }}" alt="img"  style = "width: 200px; height: 200px; margin-left: 15px;" class = "image">
                 <div class = "row" style = "display: flex; gap: 20px; align-items: center;">
-                    <p style = "width: 377px;">{{ .Title }}</p>
-                    <p style = "width: 103px;">{{ .Power }} кВт</p>
-                    <div class = "counter">
-                        <div class = "row" style = "display: flex; border: 2px solid #F3F3F7; border-radius: 6px; width: 102px;">
-                            <button type="submit">-</button>
-                            <p style = "width: 54px; align-content: center; text-align: center; font-size: 16px;">1</p>
-                            <button type="submit">+</button>
-                        </div>
-                    </div>
-                    <div class = "row" style = "width: 134px; height: 24px; border:2px solid#E8E8EC; font-size: 16px; border-radius: 12px; align-content: center; text-align: center;">-</div>
+                    <p style = "width: 379px;">{{ .Title }}</p>
+                    <p style = "width: 110px;">{{ .Power }} кВт</p>
+                    <input type="number" value="1" min="1" style="text-align: center; font-size: 16px; border: 2px solid #F3F3F7; border-radius: 6px; width: 102px;">
+                    <p style = "width: 83px;">0,3 А</p>
+                    <input type="text" name="comment" style = "width: 134px; height: 24px; border:2px solid#E8E8EC; font-size: 16px; border-radius: 12px; align-content: center; text-align: center;">
                     <button type="submit" style = " width: 87px; height: 24px;">Сохранить</button>
                     <!-- <button type = "submit" style = "margin-left: 100px; width: 50px; height: 50px; justify-content: flex-end;"><img src="/static/img/trash.svg" style = "height: 50px; width: 50px;" alt="del"></button> -->
                 </div>
