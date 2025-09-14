@@ -1,4 +1,4 @@
-module lab1
+module web_backend
 
 go 1.18
 

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"lab1/internal/app/repository"
+	"web_backend/internal/app/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"

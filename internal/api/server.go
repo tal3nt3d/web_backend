@@ -4,8 +4,8 @@ import (
 	"log"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"lab1/internal/app/handler"
-	"lab1/internal/app/repository"
+	"web_backend/internal/app/handler"
+	"web_backend/internal/app/repository"
 )
 
 func StartServer() {

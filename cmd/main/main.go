@@ -2,8 +2,7 @@ package main
 
 import (
 	"log"
-
-	"lab1/internal/api"
+	"web_backend/internal/api"
 )
 
 func main() {
