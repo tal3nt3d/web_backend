@@ -1,11 +1,9 @@
 package handler
 
 import (
-	"web_backend/internal/app/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
+	"web_backend/internal/app/repository"
 )
 
 type Handler struct {
@@ -18,65 +16,26 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) GetDevices(ctx *gin.Context) {
-	var devices []repository.Device
-	var err error
+func (h *Handler) RegisterHandler(router *gin.Engine) {
+	router.GET("/", h.GetDevices)
+	router.GET("/order/:id", h.GetDevice)
+	router.GET("/cart/:id", h.GetCart)
+	router.POST("/cart/add", h.AddToCart)
+	router.POST("/application/delete", h.DeleteApplication)
 
-	searchQuery := ctx.Query("query")
-	if searchQuery == "" {
-		devices, err = h.Repository.GetDevices()
-		if err != nil {
-			logrus.Error(err)
-		}
-	} else {
-		devices, err = h.Repository.GetDeviceByTitle(searchQuery)
-		if err != nil {
-			logrus.Error(err)
-		}
-	}
+}
 
-	cartDevices, err := h.Repository.GetCart()
-    cartCount := 0
-    if err == nil {
-        cartCount = len(cartDevices)
-    }
+func (h *Handler) RegisterStatic(router *gin.Engine) {
+	router.LoadHTMLGlob("templates/*")
+	router.Static("/styles", "./resources/styles")
+	router.Static("/img", "./resources/img")
+}
 
-	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"devices": devices,
-		"query": searchQuery,
-		"cartCount": cartCount,
+func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
+	logrus.Error(err.Error())
+	ctx.JSON(errorStatusCode, gin.H{
+		"status":      "error",
+		"description": err.Error(),
 	})
 }
 
-func (h *Handler) GetDevice(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	device, err := h.Repository.GetDevice(id)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	ctx.HTML(http.StatusOK, "order.html", gin.H{
-		"device": device,
-	})
-}
-
-func (h *Handler) GetCart(ctx *gin.Context) {
-	var devices []repository.Device
-	var err error
-
-	devices, err = h.Repository.GetCart()
-	if err != nil {
-		logrus.Error(err)
-		}
-
-		
-	ctx.HTML(http.StatusOK, "cart.html", gin.H{
-		"service_devices": devices,
-	})
-}

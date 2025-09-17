@@ -1,7 +1,7 @@
 <html lang = "rus">
     <head>
         <title>Web</title>
-        <link rel="stylesheet" href="/static/styles/index_style.css">
+        <link rel="stylesheet" href="/styles/index_style.css">
     </head>
      <header>
         <h1>
@@ -12,7 +12,7 @@
         <img src="http://localhost:9000/test/{{ .device.Photo }}" alt="img" class = "image">
         <div class = "row" style = "display: flex; flex-direction: column; gap: 10px;">
             <h1>{{ .device.Title }}</h1>
-            <p>{{ .device.Power }} кВт</p>
+            <p>{{ .device.Dev_Power }} кВт</p>
             <p>{{ .device.Description }}</p>
         </div>
     </div>

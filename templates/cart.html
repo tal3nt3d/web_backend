@@ -1,7 +1,7 @@
 <html lang = "rus">
     <head>
         <title>Web</title>
-        <link rel="stylesheet" href="/static/styles/index_style.css">
+        <link rel="stylesheet" href="/styles/index_style.css">
     </head>
      <header>
         <h1>
@@ -18,14 +18,14 @@
         <input type="text" name="query" style = "width: 40px; height: 24px; border:2px solid#E8E8EC; font-size: 16px; border-radius: 12px; align-content: center; text-align: center;">
     </div>
         <div class="container-2">
-            {{ range .service_devices }}
+            {{ range .cart }}
             <div class="order-card">
-                <img src="http://localhost:9000/test/{{ .Photo }}" alt="img"  style = "width: 200px; height: 200px; margin-left: 15px;" class = "image">
+                <img src="http://localhost:9000/test/{{ .Device.Photo }}" alt="img"  style = "width: 200px; height: 200px; margin-left: 15px;" class = "image">
                 <div class = "row" style = "display: flex; gap: 20px; align-items: center;">
-                    <p style = "width: 379px;">{{ .Title }}</p>
-                    <p style = "width: 110px;">{{ .Power }} кВт</p>
+                    <p style = "width: 379px;">{{ .Device.Title }}</p>
+                    <p style = "width: 110px;">{{ .Device.Dev_Power }} кВт</p>
                     <input type="number" value="1" min="1" style="text-align: center; font-size: 16px; border: 2px solid #F3F3F7; border-radius: 6px; width: 102px;">
-                    <p style = "width: 83px;">0,3 А</p>
+                    <p style = "width: 83px;">{{ .Amperage }} А</p>
                     <input type="text" name="comment" style = "width: 134px; height: 24px; border:2px solid#E8E8EC; font-size: 16px; border-radius: 12px; align-content: center; text-align: center;">
                     <button type="submit" style = " width: 87px; height: 24px;">Сохранить</button>
                     <!-- <button type = "submit" style = "margin-left: 100px; width: 50px; height: 50px; justify-content: flex-end;"><img src="/static/img/trash.svg" style = "height: 50px; width: 50px;" alt="del"></button> -->
@@ -34,7 +34,13 @@
             {{ end }}
         </div>
         <div class = "row" style = "display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; margin-top: 30px">
-            <button type="submit" style = "background-color: #DE231E; border-radius: 6px; color: white; width: 168; height: 40px;">Оформить заявку</button>
-            <button type="submit" style = "background-color: white; border-radius: 6px; border: 1 px solid #DE231E; color: #DE231E; width: 168; height: 40px;">Удалить заявку</button>
+            <button type="submit" class = "submit-button">Оформить заявку</button>
+            <form method="POST" action="/application/delete">
+                <input type="hidden" name="application_id" value="{{ .Application_ID}}">
+                <button type="submit" class="delete-application-button">
+                    Удалить заявку
+                </button>
+            </form>
+
         </div>
 </html>

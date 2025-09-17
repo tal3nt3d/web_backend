@@ -144,6 +144,10 @@ header button:active{
     background-color: #f0f0f8;
 }
 
+.card-application-button:active{
+    background-color: #ccc0c0;
+}
+
 .app-button{
     position: fixed;
     left: 120px;
@@ -242,4 +246,38 @@ header button:active{
 
 .counter button:active{
     background-color: #b19b9b;
+}
+
+.submit-button{
+    background-color: #DE231E;
+    border-radius: 6px;
+    border: 1px solid #DE231E;
+    color: white;
+    width: 168px;
+    height: 40px;
+}
+
+.delete-application-button{
+    background-color: white;
+    border-radius: 6px; 
+    border: 1px solid #DE231E; 
+    color: #DE231E; 
+    width: 168px; 
+    height: 40px;
+}
+
+.submit-button:hover{
+    background-color: #B91D19;
+}
+
+.submit-button:active{
+    background-color: #751714;
+}
+
+.delete-application-button:hover{
+    background-color: #f0f0f8;
+}
+
+.delete-application-button:active{
+    background-color: #ccc0c0;
 }

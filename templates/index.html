@@ -1,7 +1,7 @@
 <html lang = "rus">
     <head>
         <title>Web</title>
-        <link rel="stylesheet" href="/static/styles/index_style.css">
+        <link rel="stylesheet" href="/styles/index_style.css">
     </head>
     <header>
         <h1>
@@ -18,20 +18,23 @@
             <div class="card">
                 <img src="http://localhost:9000/test/{{ .Photo }}" alt="img" class = "image">
                 <h1 style = "min-height: 33.6px;">{{ .Title }}</h1>
-                <p>{{ .Power }} кВт</p>
+                <p>{{ .Dev_Power }} кВт</p>
                 <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px; align-self: start; margin-left: 20px;">
-                    <a href="/order/{{ .ID }}" class = "card-button">Подробнее</a>
-    
+                <a href="/order/{{ .Device_ID }}" class = "card-button">Подробнее</a>
+                <form method="POST" action="/cart/add">
+                    <input type="hidden" name="device_id" value="{{ .Device_ID }}">
+                    <button type="submit" class="card-application-button">Добавить</button>
+                </form>
                 </div>
             </div>
             {{ end }}
         </div>
     </div>
 
-    <a href="/cart" class="app-button" style = "width: 130px; height: 130px;">
-        <img src="/static/img/wrench.svg" style="height: 100px; width: 100px;" alt="Корзина">
-        {{ if .cartCount }}
-            <span class="cart-badge">{{ .cartCount }}</span>
+    <a href="/cart/{{ .Application_ID }}" class="app-button" style = "width: 130px; height: 130px;">
+        <img src="/img/wrench.svg" style="height: 100px; width: 100px;" alt="Корзина">
+        {{ if ne .cart_count 0}}
+            <span class="cart-badge">{{ .cart_count }}</span>
         {{ end }}
     </a>
 </html>
