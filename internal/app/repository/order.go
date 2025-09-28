@@ -41,7 +41,7 @@ func (r *Repository) GetDevicesByTitle(title string) ([]ds.Device, error) {
 	return devices, nil
 }
 
-func (r *Repository) GetCartCount() int64 {
+func (r *Repository) GetApplicationCount() int64 {
    var ApplicationID uint
    var count int64
    creatorID := 1
@@ -68,20 +68,14 @@ func (r *Repository) GetActiveApplicationID() uint {
 	return ApplicationID
 }
 
-func (r *Repository) GetCart(id int) ([]ds.ApplicationDevices, error) {
-    var cartItems []ds.ApplicationDevices
-    err := r.db.Where("application_id = ?", id).Preload("Device").Find(&cartItems).Error
+func (r *Repository) GetApplication(id int) ([]ds.ApplicationDevices, error) {
+    var applicationItems []ds.ApplicationDevices
+    err := r.db.Where("application_id = ?", id).Preload("Device").Find(&applicationItems).Error
     if err != nil {
         return nil, err
     }
 
-    return cartItems, nil
-}
-
-func (r *Repository) MarkApplicationDeleted(appID uint) error {
-    return r.db.Model(&ds.Application{}).
-        Where("application_id = ?", appID).
-        Update("status", "удалён").Error
+    return applicationItems, nil
 }
 
 func (r *Repository) AddDevice(deviceID uint, creatorID uint) (error) {
@@ -115,11 +109,10 @@ func (r *Repository) AddDevice(deviceID uint, creatorID uint) (error) {
             return err
         }
 
-		Dev_Power := device.Dev_Power
         appDev := ds.ApplicationDevices{
             Application_ID: app.Application_ID,
             Device_ID:      deviceID,
-			Amperage: 		Dev_Power*1000/220,
+			Amperage: 		0,
             Amount:         1,
         }
         if err := r.db.Create(&appDev).Error; err != nil {
@@ -145,7 +138,6 @@ func (r *Repository) DeleteApplication(appID uint) error {
 	}
 	return nil
 }
-
 
 func (r *Repository) IsDraftApplication(appID int) (bool, error) {
 	var app ds.Application

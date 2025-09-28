@@ -5,12 +5,12 @@
     </head>
     <header>
         <h1>
-            <a href = "/" style = "color: #DE231E; text-decoration: none;">Домой</a>
+            <a href = "/" style = "color: #DE231E; text-decoration: none;"><img src="/img/logo.svg"></a>
         </h1>
         <form action="/" method="GET">
             <input type="text" name="query" style = "width: 690px; height: 48px;" placeholder="Найти устройство" value = "{{ .query }}">
         <button type="submit" style = "position: relative; left: -50px; width: 40px; height: 40px;  margin-top: 50 px;">🔎</button>
-    </form>
+        </form>
     </header>
     <div class="space">
         <div class="container">
@@ -20,8 +20,8 @@
                 <h1 style = "min-height: 33.6px;">{{ .Title }}</h1>
                 <p>{{ .Dev_Power }} кВт</p>
                 <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px; align-self: start; margin-left: 20px;">
-                <a href="/order/{{ .Device_ID }}" class = "card-button">Подробнее</a>
-                <form method="POST" action="/cart/add">
+                <a href="/device/{{ .Device_ID }}" class = "card-button">Подробнее</a>
+                <form method="POST" action="/application/add">
                     <input type="hidden" name="device_id" value="{{ .Device_ID }}">
                     <button type="submit" class="card-application-button">Добавить</button>
                 </form>
@@ -31,10 +31,10 @@
         </div>
     </div>
 
-    <a href="/cart/{{ .Application_ID }}" class="app-button" style = "width: 130px; height: 130px;">
+    <a href="/application/{{ .Application_ID }}" class="app-button" style = "width: 130px; height: 130px;">
         <img src="/img/wrench.svg" style="height: 100px; width: 100px;" alt="Корзина">
-        {{ if ne .cart_count 0}}
-            <span class="cart-badge">{{ .cart_count }}</span>
+        {{ if ne .application_count 0}}
+            <span class="cart-badge">{{ .application_count }}</span>
         {{ end }}
     </a>
 </html>

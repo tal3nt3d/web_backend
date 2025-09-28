@@ -28,7 +28,7 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"devices": devices,
 		"query":  searchQuery, 
-		"cart_count": h.Repository.GetCartCount(),
+		"application_count": h.Repository.GetApplicationCount(),
 		"Application_ID": h.Repository.GetActiveApplicationID(),
 	})
 }
@@ -50,7 +50,7 @@ func (h *Handler) GetDevice(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) GetCart(ctx *gin.Context) {
+func (h *Handler) GetApplication(ctx *gin.Context) {
    	idStr := ctx.Param("id") 
 	id, err := strconv.Atoi(idStr) 
 	if err != nil {
@@ -67,18 +67,18 @@ func (h *Handler) GetCart(ctx *gin.Context) {
 		return
 	}
 
-    cartItems, err := h.Repository.GetCart(id)
+    applicationItems, err := h.Repository.GetApplication(id)
     if err != nil {
         logrus.Error(err)
 	}
 
     ctx.HTML(http.StatusOK, "cart.html", gin.H{
-        "cart": cartItems,
+        "application": applicationItems,
 		"Application_ID": id,
     })
 }
 
-func (h *Handler) AddToCart(ctx *gin.Context) {
+func (h *Handler) AddToApplication(ctx *gin.Context) {
     deviceIDStr := ctx.PostForm("device_id")
     deviceID, err := strconv.Atoi(deviceIDStr)
     if err != nil {
