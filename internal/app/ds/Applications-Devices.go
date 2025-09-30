@@ -1,7 +1,7 @@
 package ds
 
 type ApplicationDevices struct {
-	AppDev_ID 		uint		`gorm:"primaryKey"`
+	AppDev_ID 		uint		`gorm:"primaryKey;autoIncrement"`
 	Application_ID 	uint		`gorm:"not null;uniqueIndex:idx_application_device"`
 	Device_ID      	uint		`gorm:"not null;uniqueIndex:idx_application_device"`
 	Amount 			int			`gorm:"type:integer"`
