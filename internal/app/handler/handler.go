@@ -34,8 +34,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.PUT("/api/amperage_application/:id/finish-amperage_application", h.FinishAmperageApplication)
 	router.DELETE("/api/amperage_application/:id/delete-amperage_application", h.DeleteAmperageApplication) 
 
-	router.DELETE("/api/dev_app/:device_id/:amperage_application_id/", h.DeleteDeviceFromAmperageApplication)
-	router.PUT("/api/dev_app/:device_id/:amperage_application_id/", h.EditDeviceFromAmperageApplication)
+	router.DELETE("/api/dev_app/:device_id/:amperage_application_id", h.DeleteDeviceFromAmperageApplication)
+	router.PUT("/api/dev_app/:device_id/:amperage_application_id", h.EditDeviceFromAmperageApplication)
 
 	router.POST("/api/users/signup", h.CreateUser)
 	router.GET("/api/users/info", h.GetInfo)

@@ -37,9 +37,9 @@ func (r *Repository) GetDevice(id int) (*ds.Device, error) {
 	return &device, nil
 }
 
-func (r *Repository) GetDevicesByName(name string) ([]ds.Device, error) {
+func (r *Repository) GetDevicesByTitle(title string) ([]ds.Device, error) {
 	var devices []ds.Device
-	err := r.db.Order("id").Where("name ILIKE ? and is_delete = ?", "%"+name+"%", false).Find(&devices).Error
+	err := r.db.Order("device_id").Where("title ILIKE ? and is_delete = ?", "%"+title+"%", false).Find(&devices).Error
 	if err != nil {
 		return nil, err
 	}

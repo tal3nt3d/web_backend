@@ -15,7 +15,7 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 	var devices []ds.Device
 	var err error
 
-	searchQuery := ctx.Query("device_name")
+	searchQuery := ctx.Query("device_title")
 	if searchQuery == "" {
 		devices, err = h.Repository.GetDevices()
 		if err != nil {
@@ -23,7 +23,7 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 			return
 		}
 	} else {
-		devices, err = h.Repository.GetDevicesByName(searchQuery)
+		devices, err = h.Repository.GetDevicesByTitle(searchQuery)
 		if err != nil {
 			h.errorHandler(ctx, http.StatusInternalServerError, err)
 			return

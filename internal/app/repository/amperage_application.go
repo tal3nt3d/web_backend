@@ -18,10 +18,10 @@ func (r *Repository) GetAllAmperageApplications(from, to time.Time, status strin
 	var amperage_applications []ds.AmperageApplication
 	sub := r.db.Where("status != 'deleted' and status != 'draft'")
 	if !from.IsZero() {
-		sub = sub.Where("date_create > ?", from)
+		sub = sub.Where("created_at > ?", from)
 	}
 	if !to.IsZero() {
-		sub = sub.Where("date_create < ?", to.Add(time.Hour*24))
+		sub = sub.Where("created_at < ?", to.Add(time.Hour*24))
 	}
 	if status != "" {
 		sub = sub.Where("status = ?", status)
