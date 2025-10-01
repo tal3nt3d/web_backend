@@ -107,7 +107,7 @@ func (r *Repository) DeleteDevice(id int) error {
 	return nil
 }
 
-func (r *Repository) AddToApplication(application_id int, device_id int) error {
+func (r *Repository) AddToAmperageApplication(amperage_application_id int, device_id int) error {
 	var device ds.Device
 	if err := r.db.First(&device, device_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -116,41 +116,41 @@ func (r *Repository) AddToApplication(application_id int, device_id int) error {
 		return err
 	}
 
-	var application ds.Application
-	if err := r.db.First(&application, application_id).Error; err != nil {
+	var amperage_application ds.AmperageApplication
+	if err := r.db.First(&amperage_application, amperage_application_id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("%w: заявка с id %d", ErrNotFound, application_id)
+			return fmt.Errorf("%w: заявка с id %d", ErrNotFound, amperage_application_id)
 		}
 		return err
 	}
 	
-	applicationDevice := ds.ApplicationDevices{}
-	result := r.db.Where("device_id = ? and application_id = ?", device_id, application_id).Find(&applicationDevice)
+	amperage_applicationDevice := ds.AmperageApplicationDevices{}
+	result := r.db.Where("device_id = ? and amperage_application_id = ?", device_id, amperage_application_id).Find(&amperage_applicationDevice)
 	if result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected != 0 {
-		return fmt.Errorf("%w: устройство %d уже в заявке %d", ErrAlreadyExists, device_id, application_id)
+		return fmt.Errorf("%w: устройство %d уже в заявке %d", ErrAlreadyExists, device_id, amperage_application_id)
 	}
-	return r.db.Create(&ds.ApplicationDevices{
+	return r.db.Create(&ds.AmperageApplicationDevices{
 		Device_ID:    uint(device_id),
-		Application_ID: uint(application_id),
+		Amperage_Application_ID: uint(amperage_application_id),
 		Amount: 1,
 	}).Error
 }
 
-func (r *Repository) GetModeratorAndCreatorLogin(application ds.Application) (string, string, error) {
+func (r *Repository) GetModeratorAndCreatorLogin(amperage_application ds.AmperageApplication) (string, string, error) {
 	var creator ds.Users
 	var moderator ds.Users
 
-	err := r.db.Where("user_id = ?", application.Creator_ID).First(&creator).Error
+	err := r.db.Where("user_id = ?", amperage_application.Creator_ID).First(&creator).Error
 	if err != nil {
 		return "", "", err
 	}
 
 	var moderatorLogin string
-	if application.Moderator_ID != 0 {
-		err = r.db.Where("user_id = ?", application.Moderator_ID).First(&moderator).Error
+	if amperage_application.Moderator_ID != 0 {
+		err = r.db.Where("user_id = ?", amperage_application.Moderator_ID).First(&moderator).Error
 		if err != nil {
 			return "", "", err
 		}

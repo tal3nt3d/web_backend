@@ -122,13 +122,13 @@ func (h *Handler) EditDevice(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.DeviceToJSON(device))
 }
 
-func (h *Handler) AddToApplication(ctx *gin.Context) {
-	application, created, err := h.Repository.GetApplicationDraft(uint(h.Repository.GetUserID()))
+func (h *Handler) AddToAmperageApplication(ctx *gin.Context) {
+	amperage_application, created, err := h.Repository.GetAmperageApplicationDraft(uint(h.Repository.GetUserID()))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
-	application_id := application.Application_ID
+	amperage_application_id := amperage_application.Amperage_Application_ID
 
 	device_id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -136,7 +136,7 @@ func (h *Handler) AddToApplication(ctx *gin.Context) {
 		return
 	}
 
-	err = h.Repository.AddToApplication(int(application_id), device_id)
+	err = h.Repository.AddToAmperageApplication(int(amperage_application_id), device_id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -151,17 +151,17 @@ func (h *Handler) AddToApplication(ctx *gin.Context) {
 	status := http.StatusOK
 	
 	if created {
-		ctx.Header("Location", fmt.Sprintf("/application/%v", application.Application_ID))
+		ctx.Header("Location", fmt.Sprintf("/amperage_application/%v", amperage_application.Amperage_Application_ID))
 		status = http.StatusCreated
 	}
 
-	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(application)
+	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(amperage_application)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(status, serializer.ApplicationToJSON(application, creatorLogin, moderatorLogin))
+	ctx.JSON(status, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
 }
 
 func (h *Handler) AddPhoto(ctx *gin.Context) {

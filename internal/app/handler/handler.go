@@ -18,30 +18,30 @@ func NewHandler(r *repository.Repository) *Handler {
 }
 
 func (h *Handler) RegisterHandler(router *gin.Engine) {
-	router.GET("/", h.GetDevices)
-	router.GET("/device/:id", h.GetDevice)
-	router.POST("/device/create-device", h.CreateDevice)
-	router.PUT("/device/:id/edit-device", h.EditDevice)
-	router.DELETE("/device/:id/delete-device", h.DeleteDevice)
-	router.POST("/device/:id/add-to-application", h.AddToApplication)
-	router.POST("/device/:id/add-photo", h.AddPhoto)
+	router.GET("/api", h.GetDevices)
+	router.GET("/api/device/:id", h.GetDevice)
+	router.POST("/api/device/create-device", h.CreateDevice)
+	router.PUT("/api/device/:id/edit-device", h.EditDevice)
+	router.DELETE("/api/device/:id/delete-device", h.DeleteDevice)
+	router.POST("/api/device/:id/add-to-amperage_application", h.AddToAmperageApplication)
+	router.POST("/api/device/:id/add-photo", h.AddPhoto)
 
-	router.GET("/application/application-cart", h.GetApplicationCart)
-	router.GET("/application/all-applications", h.GetAllApplications)
-	router.GET("/application/:id", h.GetApplication)
-	router.PUT("/application/:id/edit-application", h.EditApplication)
-	router.PUT("/application/:id/form-application", h.FormApplication)
-	router.PUT("/application/:id/finish-application", h.FinishApplication)
-	router.DELETE("/application/:id/delete-application", h.DeleteApplication) 
+	router.GET("/api/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
+	router.GET("/api/amperage_application/all-amperage_applications", h.GetAllAmperageApplications)
+	router.GET("/api/amperage_application/:id", h.GetAmperageApplication)
+	router.PUT("/api/amperage_application/:id/edit-amperage_application", h.EditAmperageApplication)
+	router.PUT("/api/amperage_application/:id/form-amperage_application", h.FormAmperageApplication)
+	router.PUT("/api/amperage_application/:id/finish-amperage_application", h.FinishAmperageApplication)
+	router.DELETE("/api/amperage_application/:id/delete-amperage_application", h.DeleteAmperageApplication) 
 
-	router.DELETE("/dev_app/:device_id/:application_id/", h.DeleteDeviceFromApplication)
-	router.PUT("/dev_app/:device_id/:application_id/", h.EditDeviceFromApplication)
+	router.DELETE("/api/dev_app/:device_id/:amperage_application_id/", h.DeleteDeviceFromAmperageApplication)
+	router.PUT("/api/dev_app/:device_id/:amperage_application_id/", h.EditDeviceFromAmperageApplication)
 
-	router.POST("/users/signup", h.CreateUser)
-	router.GET("/users/info", h.GetInfo)
-	router.PUT("/users/info", h.EditInfo)
-	router.POST("/users/signin", h.SignIn)
-	router.POST("/users/signout", h.SignOut)
+	router.POST("/api/users/signup", h.CreateUser)
+	router.GET("/api/users/info", h.GetInfo)
+	router.PUT("/api/users/info", h.EditInfo)
+	router.POST("/api/users/signin", h.SignIn)
+	router.POST("/api/users/signout", h.SignOut)
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {

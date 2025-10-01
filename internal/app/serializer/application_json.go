@@ -4,8 +4,8 @@ import (
 	"web_backend/internal/app/ds"
 	"time"
 )
-type ApplicationJSON struct {
-	ID				uint		`json:"application_id"`
+type AmperageApplicationJSON struct {
+	ID				uint		`json:"amperage_application_id"`
 	Status			string		`json:"status"`
 	Created_At		time.Time	`json:"created_at"`
 	Creator_Login	string		`json:"creator_login"`
@@ -15,7 +15,7 @@ type ApplicationJSON struct {
 	Amperage		float64		`json:"amperage"`
 }
 
-func ApplicationToJSON(app ds.Application, creator_login string, moderator_login string) ApplicationJSON {
+func AmperageApplicationToJSON(app ds.AmperageApplication, creator_login string, moderator_login string) AmperageApplicationJSON {
 	var form_date, finish_date *time.Time
 	if app.Forming_Date.Valid {
 		form_date = &app.Forming_Date.Time
@@ -28,8 +28,8 @@ func ApplicationToJSON(app ds.Application, creator_login string, moderator_login
 		m_login = &moderator_login
 	}
  	
-	return ApplicationJSON{
-		ID: 				app.Application_ID,
+	return AmperageApplicationJSON{
+		ID: 				app.Amperage_Application_ID,
 		Status: 			app.Status,
 		Created_At: 		app.Created_At,
 		Creator_Login: 		creator_login,
@@ -40,11 +40,11 @@ func ApplicationToJSON(app ds.Application, creator_login string, moderator_login
 	}
 }
 
-func ApplicationFromJSON(apps ApplicationJSON) ds.Application {
+func AmperageApplicationFromJSON(apps AmperageApplicationJSON) ds.AmperageApplication {
 	if apps.Amperage == 0 {
-		return ds.Application{}
+		return ds.AmperageApplication{}
 	}
-	return ds.Application{
+	return ds.AmperageApplication{
 		Amperage: apps.Amperage,
 	}
 }

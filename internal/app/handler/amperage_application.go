@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) GetAllApplications(ctx *gin.Context) {
+func (h *Handler) GetAllAmperageApplications(ctx *gin.Context) {
 	fromDate := ctx.Query("from-date")
 	var from = time.Time{}
 	var to = time.Time{}
@@ -37,25 +37,25 @@ func (h *Handler) GetAllApplications(ctx *gin.Context) {
 
 	status := ctx.Query("status")
 
-	applications, err := h.Repository.GetAllApplications(from, to, status)
+	amperage_applications, err := h.Repository.GetAllAmperageApplications(from, to, status)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
-	resp := make([]serializer.ApplicationJSON, 0, len(applications))
-	for _, c := range applications {
+	resp := make([]serializer.AmperageApplicationJSON, 0, len(amperage_applications))
+	for _, c := range amperage_applications {
 		creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(c)
 		if err != nil {
 			h.errorHandler(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		resp = append(resp, serializer.ApplicationToJSON(c, creatorLogin, moderatorLogin))
+		resp = append(resp, serializer.AmperageApplicationToJSON(c, creatorLogin, moderatorLogin))
 	}
 	ctx.JSON(http.StatusOK, resp)
 }
 
-func (h *Handler) GetApplicationCart(ctx *gin.Context){
-	devices_count := h.Repository.GetApplicationCount(uint(h.Repository.GetUserID()))
+func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
+	devices_count := h.Repository.GetAmperageApplicationCount(uint(h.Repository.GetUserID()))
 
 	if devices_count == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -65,7 +65,7 @@ func (h *Handler) GetApplicationCart(ctx *gin.Context){
 		return
 	}
 
-	application, err := h.Repository.CheckCurrentApplicationDraft(uint(h.Repository.GetUserID()))
+	amperage_application, err := h.Repository.CheckCurrentAmperageApplicationDraft(uint(h.Repository.GetUserID()))
 	if err != nil {
 		if errors.Is(err, repository.ErrNotAllowed) {
 			h.errorHandler(ctx, http.StatusUnauthorized, err)
@@ -81,12 +81,12 @@ func (h *Handler) GetApplicationCart(ctx *gin.Context){
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"id":          application.Application_ID,
-		"devices_count": h.Repository.GetApplicationCount(application.Creator_ID),
+		"id":          amperage_application.Amperage_Application_ID,
+		"devices_count": h.Repository.GetAmperageApplicationCount(amperage_application.Creator_ID),
 	})
 }
 
-func (h *Handler) GetApplication(ctx *gin.Context) {
+func (h *Handler) GetAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -94,7 +94,7 @@ func (h *Handler) GetApplication(ctx *gin.Context) {
 		return
 	}
 
-	devices, application, err := h.Repository.GetApplicationDevices(id)
+	devices, amperage_application, err := h.Repository.GetAmperageApplicationDevices(id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -111,19 +111,19 @@ func (h *Handler) GetApplication(ctx *gin.Context) {
 		resp = append(resp, serializer.DeviceToJSON(r))
 	}
 
-	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(application)
+	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(amperage_application)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"application": serializer.ApplicationToJSON(application, creatorLogin, moderatorLogin),
+		"amperage_application": serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin),
 		"devices":   resp,
 	})
 }
 
-func (h *Handler) FormApplication(ctx *gin.Context) {
+func (h *Handler) FormAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -133,7 +133,7 @@ func (h *Handler) FormApplication(ctx *gin.Context) {
 
 	status := "formed"
 
-	application, err := h.Repository.FormApplication(id, status)
+	amperage_application, err := h.Repository.FormAmperageApplication(id, status)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -145,16 +145,16 @@ func (h *Handler) FormApplication(ctx *gin.Context) {
 		return
 	}
 
-	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(application)
+	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(amperage_application)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, serializer.ApplicationToJSON(application, creatorLogin, moderatorLogin))
+	ctx.JSON(http.StatusOK, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
 }
 
-func (h *Handler) EditApplication(ctx *gin.Context) {
+func (h *Handler) EditAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -162,13 +162,13 @@ func (h *Handler) EditApplication(ctx *gin.Context) {
 		return
 	}
 
-	var applicationJSON serializer.ApplicationJSON
-	if err := ctx.BindJSON(&applicationJSON); err != nil {
+	var amperage_applicationJSON serializer.AmperageApplicationJSON
+	if err := ctx.BindJSON(&amperage_applicationJSON); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	application, err := h.Repository.EditApplication(id, applicationJSON)
+	amperage_application, err := h.Repository.EditAmperageApplication(id, amperage_applicationJSON)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -178,18 +178,18 @@ func (h *Handler) EditApplication(ctx *gin.Context) {
 		return
 	}
 
-	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(application)
+	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(amperage_application)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, serializer.ApplicationToJSON(application, creatorLogin, moderatorLogin))
+	ctx.JSON(http.StatusOK, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
 }
 
-func (h *Handler) DeleteApplication(ctx *gin.Context){
+func (h *Handler) DeleteAmperageApplication(ctx *gin.Context){
 	idStr := ctx.Param("id")
-	application_id, err := strconv.Atoi(idStr)
+	amperage_application_id, err := strconv.Atoi(idStr)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -197,7 +197,7 @@ func (h *Handler) DeleteApplication(ctx *gin.Context){
 
 	status := "deleted"
 	
-	_, err = h.Repository.FormApplication(application_id, status)
+	_, err = h.Repository.FormAmperageApplication(amperage_application_id, status)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -209,10 +209,10 @@ func (h *Handler) DeleteApplication(ctx *gin.Context){
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Application deleted"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Amperage application deleted"})
 }
 
-func (h *Handler) FinishApplication(ctx *gin.Context) {
+func (h *Handler) FinishAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -226,7 +226,7 @@ func (h *Handler) FinishApplication(ctx *gin.Context) {
 		return
 	}
 
-	application, err := h.Repository.FinishApplication(id, statusJSON.Status)
+	amperage_application, err := h.Repository.FinishAmperageApplication(id, statusJSON.Status)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -238,11 +238,11 @@ func (h *Handler) FinishApplication(ctx *gin.Context) {
 		return
 	}
 
-	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(application)
+	creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(amperage_application)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, serializer.ApplicationToJSON(application, creatorLogin, moderatorLogin))
+	ctx.JSON(http.StatusOK, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
 }
