@@ -19,9 +19,9 @@ func NewHandler(r *repository.Repository) *Handler {
 func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.GET("/", h.GetDevices)
 	router.GET("/device/:id", h.GetDevice)
-	router.GET("/application/:id", h.GetApplication)
-	router.POST("/application/add", h.AddToApplication)
-	router.POST("/application/delete", h.DeleteApplication)
+	router.GET("/amperage_application/:id", h.GetAmperageApplication)
+	router.POST("/amperage_application/add", h.AddToAmperageApplication)
+	router.POST("/amperage_application/delete", h.DeleteAmperageApplication)
 
 }
 

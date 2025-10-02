@@ -21,7 +21,7 @@
                 <p>{{ .Dev_Power }} кВт</p>
                 <div class = "row" style = "display: flex; justify-content: space-between; gap: 10px; align-self: start; margin-left: 20px;">
                 <a href="/device/{{ .Device_ID }}" class = "card-button">Подробнее</a>
-                <form method="POST" action="/application/add">
+                <form method="POST" action="/amperage_application/add">
                     <input type="hidden" name="device_id" value="{{ .Device_ID }}">
                     <button type="submit" class="card-application-button">Добавить</button>
                 </form>
@@ -31,10 +31,15 @@
         </div>
     </div>
 
-    <a href="/application/{{ .Application_ID }}" class="app-button" style = "width: 130px; height: 130px;">
+    {{ if ne .amperage_application_count 0}}
+    <a href="/amperage_application/{{ .Amperage_Application_ID }}" class="app-button" style = "width: 130px; height: 130px; ">
         <img src="/img/wrench.svg" style="height: 100px; width: 100px;" alt="Корзина">
-        {{ if ne .application_count 0}}
-            <span class="cart-badge">{{ .application_count }}</span>
-        {{ end }}
+            <span class="cart-badge">{{ .amperage_application_count }}</span>
     </a>
+    {{ else }}
+    <a href="/amperage_application/{{ .Amperage_Application_ID }}" class="inactive-app-button" style = "width: 130px; height: 130px; ">
+        <img src="/img/wrench.svg" style="height: 100px; width: 100px;" alt="Корзина">
+        <span class="cart-badge" style="opacity: 0;">0</span>
+    </a>
+    {{ end }}
 </html>

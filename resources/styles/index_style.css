@@ -169,6 +169,25 @@ header button:active{
     height: 120px;
 }
 
+.inactive-app-button{
+    position: fixed;
+    left: 120px;
+    bottom:40px; 
+    width: 120px;
+    height: 120px;
+    border-radius: 6px;
+    background-color: rgb(255, 255, 255);
+    color: #DE231E;
+    border: 1px solid #DE231E;
+    align-content: center;
+    text-align: center;
+    text-decoration: none;
+    object-fit: cover;
+    pointer-events: none; 
+    opacity: 0.5; 
+    cursor: not-allowed;
+}
+
 .order-card{
     width: 1273px;
     height: 200px;

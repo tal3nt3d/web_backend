@@ -41,17 +41,17 @@ func (r *Repository) GetDevicesByTitle(title string) ([]ds.Device, error) {
 	return devices, nil
 }
 
-func (r *Repository) GetApplicationCount() int64 {
-   var ApplicationID uint
+func (r *Repository) GetAmperageApplicationCount() int64 {
+   var AmperageApplicationID uint
    var count int64
    creatorID := 1
 
-   err := r.db.Model(&ds.Application{}).Where("creator_id = ? AND status = ?", creatorID, "черновик").Select("application_id").First(&ApplicationID).Error
+   err := r.db.Model(&ds.AmperageApplication{}).Where("creator_id = ? AND status = ?", creatorID, "draft").Select("amperage_application_id").First(&AmperageApplicationID).Error
    if err != nil {
       return 0
    }
 
-   err = r.db.Model(&ds.ApplicationDevices{}).Where("application_id = ?", ApplicationID).Count(&count).Error
+   err = r.db.Model(&ds.AmperageApplicationDevices{}).Where("amperage_application_id = ?", AmperageApplicationID).Count(&count).Error
    if err != nil {
       logrus.Println("Error counting records in lists_chats:", err)
    }
@@ -59,34 +59,34 @@ func (r *Repository) GetApplicationCount() int64 {
    return count
 }
 
-func (r *Repository) GetActiveApplicationID() uint {
-	var ApplicationID uint
-	err := r.db.Model(&ds.Application{}).Where("status = ?", "черновик").Select("application_id").First(&ApplicationID).Error
+func (r *Repository) GetActiveAmperageApplicationID() uint {
+	var AmperageApplicationID uint
+	err := r.db.Model(&ds.AmperageApplication{}).Where("status = ?", "draft").Select("amperage_application_id").First(&AmperageApplicationID).Error
 	if err != nil {
 		return 0
 	}
-	return ApplicationID
+	return AmperageApplicationID
 }
 
-func (r *Repository) GetApplication(id int) ([]ds.ApplicationDevices, error) {
-    var applicationItems []ds.ApplicationDevices
-    err := r.db.Where("application_id = ?", id).Preload("Device").Find(&applicationItems).Error
+func (r *Repository) GetAmperageApplication(id int) ([]ds.AmperageApplicationDevices, error) {
+    var amperageApplicationItems []ds.AmperageApplicationDevices
+    err := r.db.Where("amperage_application_id = ?", id).Preload("Device").Find(&amperageApplicationItems).Error
     if err != nil {
         return nil, err
     }
 
-    return applicationItems, nil
+    return amperageApplicationItems, nil
 }
 
 func (r *Repository) AddDevice(deviceID uint, creatorID uint) (error) {
-    var app ds.Application
+    var app ds.AmperageApplication
 
-    err := r.db.Where("creator_id = ? AND status = ?", creatorID, "черновик").
+    err := r.db.Where("creator_id = ? AND status = ?", creatorID, "draft").
         First(&app).Error
 
     if errors.Is(err, gorm.ErrRecordNotFound) {
-        app = ds.Application{
-            Status:     "черновик",
+        app = ds.AmperageApplication{
+            Status:     "draft",
             Created_At: time.Now(),
             Creator_ID: creatorID,
 			Moderator_ID: 2,
@@ -99,8 +99,8 @@ func (r *Repository) AddDevice(deviceID uint, creatorID uint) (error) {
     }
 
     var count int64
-    r.db.Model(&ds.ApplicationDevices{}).
-        Where("application_id = ? AND device_id = ?", app.Application_ID, deviceID).Preload("Device").
+    r.db.Model(&ds.AmperageApplicationDevices{}).
+        Where("amperage_application_id = ? AND device_id = ?", app.Amperage_Application_ID, deviceID).Preload("Device").
         Count(&count)
 
     if count == 0 {
@@ -109,8 +109,8 @@ func (r *Repository) AddDevice(deviceID uint, creatorID uint) (error) {
             return err
         }
 
-        appDev := ds.ApplicationDevices{
-            Application_ID: app.Application_ID,
+        appDev := ds.AmperageApplicationDevices{
+            Amperage_Application_ID: app.Amperage_Application_ID,
             Device_ID:      deviceID,
 			Amperage: 		0,
             Amount:         1,
@@ -123,27 +123,27 @@ func (r *Repository) AddDevice(deviceID uint, creatorID uint) (error) {
     return nil
 }
 
-func (r *Repository) DeleteApplication(appID uint) error {
+func (r *Repository) DeleteAmperageApplication(appID uint) error {
 	query := `
-		UPDATE applications 
-		SET status = 'удалён'
-		WHERE application_id = $1;
+		UPDATE amperage_applications 
+		SET status = 'deleted'
+		WHERE amperage_application_id = $1;
 	`
 	result := r.db.Exec(query, appID)
 	if result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("application with id %d not found", appID)
+		return fmt.Errorf("amperage_application with id %d not found", appID)
 	}
 	return nil
 }
 
-func (r *Repository) IsDraftApplication(appID int) (bool, error) {
-	var app ds.Application
-	err := r.db.Select("status").Where("application_id = ?", appID).First(&app).Error
+func (r *Repository) IsDraftAmperageApplication(appID int) (bool, error) {
+	var app ds.AmperageApplication
+	err := r.db.Select("status").Where("amperage_application_id = ?", appID).First(&app).Error
 	if err != nil {
 		return false, err
 	}
-	return app.Status == "черновик", nil
+	return app.Status == "draft", nil
 }

@@ -28,8 +28,8 @@ func (h *Handler) GetDevices(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"devices": devices,
 		"query":  searchQuery, 
-		"application_count": h.Repository.GetApplicationCount(),
-		"Application_ID": h.Repository.GetActiveApplicationID(),
+		"amperage_application_count": h.Repository.GetAmperageApplicationCount(),
+		"Amperage_Application_ID": h.Repository.GetActiveAmperageApplicationID(),
 	})
 }
 
@@ -50,14 +50,14 @@ func (h *Handler) GetDevice(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) GetApplication(ctx *gin.Context) {
+func (h *Handler) GetAmperageApplication(ctx *gin.Context) {
    	idStr := ctx.Param("id") 
 	id, err := strconv.Atoi(idStr) 
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	isDraft, err := h.Repository.IsDraftApplication(id)
+	isDraft, err := h.Repository.IsDraftAmperageApplication(id)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -67,18 +67,18 @@ func (h *Handler) GetApplication(ctx *gin.Context) {
 		return
 	}
 
-    applicationItems, err := h.Repository.GetApplication(id)
+    amperageApplicationItems, err := h.Repository.GetAmperageApplication(id)
     if err != nil {
         logrus.Error(err)
 	}
 
     ctx.HTML(http.StatusOK, "cart.html", gin.H{
-        "application": applicationItems,
-		"Application_ID": id,
+        "amperage_application": amperageApplicationItems,
+		"Amperage_Application_ID": id,
     })
 }
 
-func (h *Handler) AddToApplication(ctx *gin.Context) {
+func (h *Handler) AddToAmperageApplication(ctx *gin.Context) {
     deviceIDStr := ctx.PostForm("device_id")
     deviceID, err := strconv.Atoi(deviceIDStr)
     if err != nil {
@@ -97,15 +97,15 @@ func (h *Handler) AddToApplication(ctx *gin.Context) {
     ctx.Redirect(http.StatusSeeOther, ctx.Request.Referer())
 }
 
-func (h *Handler) DeleteApplication(ctx *gin.Context) {
-	appIDStr := ctx.PostForm("application_id")
+func (h *Handler) DeleteAmperageApplication(ctx *gin.Context) {
+	appIDStr := ctx.PostForm("amperage_application_id")
 	appID, err := strconv.Atoi(appIDStr)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	err = h.Repository.DeleteApplication(uint(appID))
+	err = h.Repository.DeleteAmperageApplication(uint(appID))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return

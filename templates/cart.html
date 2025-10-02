@@ -20,7 +20,7 @@
         <p style="width: 83px; margin-left: 18px;">Заметка</p>
     </div>
         <div class="container-2">
-            {{ range .application }}
+            {{ range .amperage_application }}
             <div class="order-card">
                 <img src="http://localhost:9000/test/{{ .Device.Photo }}" alt="img"  style = "width: 200px; height: 200px; margin-left: 15px;" class = "image">
                 <div class = "row" style = "display: flex; gap: 20px; align-items: center;">
@@ -37,8 +37,8 @@
         </div>
         <div class = "row" style = "display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; margin-top: 30px">
             <!-- <button type="submit" class = "submit-button">Оформить заявку</button> -->
-            <form method="POST" action="/application/delete">
-                <input type="hidden" name="application_id" value="{{ .Application_ID}}">
+            <form method="POST" action="/amperage_application/delete">
+                <input type="hidden" name="amperage_application_id" value="{{ .Amperage_Application_ID}}">
                 <button type="submit" class="delete-application-button">
                     Удалить заявку
                 </button>
