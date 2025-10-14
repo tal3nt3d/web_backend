@@ -23,7 +23,7 @@ import (
 // @license.name MIT
 // @host localhost:8080
 // @BasePath /api/v1
-// @securityDefinitions.apikey BearerAuth
+// @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func main() {

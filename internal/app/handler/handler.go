@@ -31,7 +31,7 @@ func NewHandler(r *repository.Repository) *Handler {
 // @license.name MIT
 // @host localhost:8080
 // @BasePath /api/v1
-// @securityDefinitions.apikey BearerAuth
+// @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func (h *Handler) RegisterHandler(router *gin.Engine) {

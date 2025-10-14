@@ -13,7 +13,7 @@ import (
 
 func (r *Repository) GetUserByID(id uuid.UUID) (ds.Users, error) {
 	user := ds.Users{}
-	sub := r.db.Where("id = ?", id).Find(&user)
+	sub := r.db.Where("user_id = ?", id).Find(&user)
 	if sub.Error != nil {
 		return ds.Users{}, sub.Error
 	}
