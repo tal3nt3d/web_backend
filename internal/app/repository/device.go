@@ -8,6 +8,7 @@ import (
 	"web_backend/internal/app/ds"
 	"web_backend/internal/app/minioClient"
 	"web_backend/internal/app/serializer"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -149,7 +150,7 @@ func (r *Repository) GetModeratorAndCreatorLogin(amperage_application ds.Amperag
 	}
 
 	var moderatorLogin string
-	if amperage_application.Moderator_ID != 0 {
+	if amperage_application.Moderator_ID.Valid{
 		err = r.db.Where("user_id = ?", amperage_application.Moderator_ID).First(&moderator).Error
 		if err != nil {
 			return "", "", err

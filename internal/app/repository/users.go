@@ -1,24 +1,27 @@
 package repository
 
 import (
-	"web_backend/internal/app/serializer"
-	"web_backend/internal/app/ds"
 	"errors"
-	"fmt"
-	"gorm.io/gorm"
+	"os"
+	"time"
+	"web_backend/internal/app/ds"
+	"web_backend/internal/app/serializer"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
-func (r *Repository) GetUserByID(id int) (ds.Users, error) {
+func (r *Repository) GetUserByID(id uuid.UUID) (ds.Users, error) {
 	user := ds.Users{}
-	if id <= 0 {
-		return ds.Users{}, fmt.Errorf("неверный id: должен быть > 0")
+	sub := r.db.Where("id = ?", id).Find(&user)
+	if sub.Error != nil {
+		return ds.Users{}, sub.Error
 	}
-	
-	err := r.db.Where("user_id = ?", id).First(&user).Error
+	if sub.RowsAffected == 0 {
+		return ds.Users{}, ErrNotFound
+	}
+	err := sub.First(&user).Error
 	if err != nil {
-		// if errors.Is(err, gorm.ErrRecordNotFound) {
-		// 	return ds.User{}, fmt.Errorf("%w: пользователь с id %d не найден", ErrNotFound, id)
-		// }
 		return ds.Users{}, err
 	}
 	return user, nil
@@ -26,15 +29,15 @@ func (r *Repository) GetUserByID(id int) (ds.Users, error) {
 
 func (r *Repository) GetUserByLogin(login string) (ds.Users, error) {
 	user := ds.Users{}
-	if login == "" {
-		return ds.Users{}, errors.New("логин не может быть пустым")
+	sub := r.db.Where("login = ?", login).Find(&user)
+	if sub.Error != nil {
+		return ds.Users{}, sub.Error
 	}
-	
-	err := r.db.Where("login = ?", login).First(&user).Error
+	if sub.RowsAffected == 0 {
+		return ds.Users{}, ErrNotFound
+	}
+	err := sub.First(&user).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ds.Users{}, fmt.Errorf("%w: пользователь с логином %s не найден", ErrNotFound, login)
-		}
 		return ds.Users{}, err
 	}
 	return user, nil
@@ -42,90 +45,78 @@ func (r *Repository) GetUserByLogin(login string) (ds.Users, error) {
 
 func (r *Repository) CreateUser(userJSON serializer.UserJSON) (ds.Users, error) {
 	user := serializer.UserFromJSON(userJSON)
-	
 	if user.Login == "" {
-		return ds.Users{}, errors.New("логин обязателен для заполнения")
+		return ds.Users{}, errors.New("login is empty")
 	}
-
 	if user.Password == "" {
-		return ds.Users{}, errors.New("пароль обязателен для заполнения")
+		return ds.Users{}, errors.New("password is empty")
+	}
+	if _, err := r.GetUserByLogin(user.Login); err == nil {
+		return ds.Users{}, errors.New("user already exists")
 	}
 
+	user.User_ID = uuid.New()
 
-	_, err := r.GetUserByLogin(user.Login)
-	if err == nil {
-		return ds.Users{}, fmt.Errorf("%w: пользователь с логином %s уже существует", ErrAlreadyExists, user.Login)
-	} else if !errors.Is(err, ErrNotFound) {
-		return ds.Users{}, err
-	}
-
-	// // Проверка прав для создания модератора
-	// if user.IsModerator {
-	// 	currentUserID := r.GetUserID()
-	// 	if currentUserID == 0 {
-	// 		return ds.User{}, fmt.Errorf("%w: требуется аутентификация для создания модератора", ErrNotAllowed)
-	// 	}
-		
-	// 	currentUser, err := r.GetUserByID(currentUserID)
-	// 	if err != nil {
-	// 		return ds.User{}, err
-	// 	}
-	// 	if !currentUser.IsModerator {
-	// 		return ds.User{}, fmt.Errorf("%w: только модераторы могут создавать учетные записи модераторов", ErrNotAllowed)
-	// 	}
-	// }
-
-	err = r.db.Create(&user).Error
-	if err != nil {
-		return ds.Users{}, fmt.Errorf("ошибка при создании пользователя: %w", err)
+	sub := r.db.Create(&user)
+	if sub.Error != nil {
+		return ds.Users{}, sub.Error
 	}
 	return user, nil
 }
 
-func (r *Repository) SignIn(userJSON serializer.UserJSON) (ds.Users, error) {
-	if userJSON.Login == "" {
-		return ds.Users{}, errors.New("логин обязателен для заполнения")
-	}
-	if userJSON.Password == "" {
-		return ds.Users{}, errors.New("пароль обязателен для заполнения")
-	}
-
+func (r *Repository) SignIn(userJSON serializer.UserJSON) (string, error) {
 	user, err := r.GetUserByLogin(userJSON.Login)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			return ds.Users{}, errors.New("неверный логин или пароль")
-		}
-		return ds.Users{}, err
+		return "", err
 	}
 
-	if user.Password != userJSON.Password {
-		return ds.Users{}, errors.New("неверный логин или пароль")
+	token, err := GenerateToken(user.User_ID, user.IsModerator)
+	if err != nil {
+		return "", err
 	}
 
-	r.SetUserID(int(user.User_ID))
-	return user, nil
+	return token, nil
 }
 
-func (r *Repository) EditInfo(id int, userJSON serializer.UserJSON) (ds.Users, error) {
-	if id <= 0 {
-		return ds.Users{}, fmt.Errorf("неверный id пользователя")
+func GenerateToken(id uuid.UUID, isModerator bool) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["authorized"] = true
+	claims["user_id"] = id.String()
+	claims["is_moderator"] = isModerator
+	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
+	if err != nil {
+		return "", err
 	}
 
-	currentUser, err := r.GetUserByID(id)
+	return tokenString, nil
+}
+
+func (r *Repository) EditInfo(login string, userJSON serializer.UserJSON) (ds.Users, error) {
+	currUser, err := r.GetUserByLogin(login)
 	if err != nil {
 		return ds.Users{}, err
 	}
 
-	updates := serializer.UserFromJSON(userJSON)
-	
-	if updates.IsModerator && !currentUser.IsModerator {
-		updates.IsModerator = false
+	if userJSON.Login != "" {
+		currUser.Login = userJSON.Login
 	}
 
-	err = r.db.Model(&currentUser).Updates(updates).Error
+	if userJSON.Password != "" {
+		currUser.Password = userJSON.Password
+	}
+
+	if userJSON.IsModerator && !currUser.IsModerator {
+		userJSON.IsModerator = false
+	}
+	currUser.IsModerator = userJSON.IsModerator
+
+	err = r.db.Save(&currUser).Error
 	if err != nil {
-		return ds.Users{}, fmt.Errorf("ошибка при обновлении профиля: %w", err)
+		return ds.Users{}, err
 	}
-
-	return r.GetUserByID(id)
+	return currUser, nil
 }

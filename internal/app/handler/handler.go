@@ -17,31 +17,54 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
+// RegisterHandler godoc
+// @title Amperage Calculation API
+// @version 1.0
+// @description API для управления расчётами нагрузки
+// @contact.name API Support
+// @contact.url http://localhost:8080
+// @contact.email support@amperage.com
+// @license.name MIT
+// @host localhost:8080
+// @BasePath /api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func (h *Handler) RegisterHandler(router *gin.Engine) {
-	router.GET("/api/devices", h.GetDevices)
-	router.GET("/api/device/:id", h.GetDevice)
-	router.POST("/api/device/create-device", h.CreateDevice)
-	router.PUT("/api/device/:id/edit-device", h.EditDevice)
-	router.DELETE("/api/device/:id/delete-device", h.DeleteDevice)
-	router.POST("/api/device/:id/add-to-amperage_application", h.AddToAmperageApplication)
-	router.POST("/api/device/:id/add-photo", h.AddPhoto)
+	api := router.Group("/api")
 
-	router.GET("/api/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
-	router.GET("/api/amperage_application/all-amperage_applications", h.GetAllAmperageApplications)
-	router.GET("/api/amperage_application/:id", h.GetAmperageApplication)
-	router.PUT("/api/amperage_application/:id/edit-amperage_application", h.EditAmperageApplication)
-	router.PUT("/api/amperage_application/:id/form-amperage_application", h.FormAmperageApplication)
-	router.PUT("/api/amperage_application/:id/finish-amperage_application", h.FinishAmperageApplication)
-	router.DELETE("/api/amperage_application/:id/delete-amperage_application", h.DeleteAmperageApplication) 
+	unauthorized := api.Group("/")
+	unauthorized.POST("/users/signup", h.CreateUser)
+	unauthorized.POST("/users/signin", h.SignIn)
+	unauthorized.GET("/devices", h.GetDevices)
+	unauthorized.GET("/device/:id", h.GetDevice)
 
-	router.DELETE("/api/dev_app/:device_id/:amperage_application_id", h.DeleteDeviceFromAmperageApplication)
-	router.PUT("/api/dev_app/:device_id/:amperage_application_id", h.EditDeviceFromAmperageApplication)
+	authorized := api.Group("/")
+	authorized.Use(h.ModeratorMiddleware(false))
+	authorized.POST("/device/create-device", h.CreateDevice)
+	authorized.PUT("/device/:id/edit-device", h.EditDevice)
+	authorized.DELETE("/device/:id/delete-device", h.DeleteDevice)
+	authorized.POST("/device/:id/add-to-amperage_application", h.AddToAmperageApplication)
+	authorized.POST("/device/:id/add-photo", h.AddPhoto)
 
-	router.POST("/api/users/signup", h.CreateUser)
-	router.GET("/api/users/info", h.GetInfo)
-	router.PUT("/api/users/info", h.EditInfo)
-	router.POST("/api/users/signin", h.SignIn)
-	router.POST("/api/users/signout", h.SignOut)
+	authorized.GET("/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
+	authorized.GET("/amperage_application/all-amperage_applications", h.GetAllAmperageApplications)
+	authorized.GET("/amperage_application/:id", h.GetAmperageApplication)
+	authorized.PUT("/amperage_application/:id/edit-amperage_application", h.EditAmperageApplication)
+	authorized.PUT("/amperage_application/:id/form-amperage_application", h.FormAmperageApplication)
+	authorized.PUT("/amperage_application/:id/finish-amperage_application", h.FinishAmperageApplication)
+	authorized.DELETE("/amperage_application/:id/delete-amperage_application", h.DeleteAmperageApplication) 
+
+	authorized.DELETE("/dev_app/:device_id/:amperage_application_id", h.DeleteDeviceFromAmperageApplication)
+	authorized.PUT("/dev_app/:device_id/:amperage_application_id", h.EditDeviceFromAmperageApplication)
+
+	authorized.GET("/users/:login/info", h.GetInfo)
+	authorized.PUT("/users/:login/info", h.EditInfo)
+	authorized.POST("/users/signout", h.SignOut)
+
+	moderator := api.Group("/")
+	moderator.Use(h.ModeratorMiddleware(true))
+	moderator.PUT("/amperage-calculation/:id/form", h.FormAmperageApplication)
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {

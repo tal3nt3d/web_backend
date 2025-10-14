@@ -5,12 +5,27 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 	"web_backend/internal/app/repository"
 	"web_backend/internal/app/serializer"
-	"time"
+	"web_backend/internal/app/ds"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
+// GetAllAmperageApplications godoc
+// @Summary Получить список заявок на расчёт
+// @Description Возвращает заявки с возможностью фильтрации по датам и статусу
+// @Tags amperage_applications
+// @Produce json
+// @Param from-date query string false "Начальная дата (YYYY-MM-DD)"
+// @Param to-date query string false "Конечная дата (YYYY-MM-DD)"
+// @Param status query string false "Статус заявки"
+// @Success 200 {array} serializer.AmperageApplicationJSON "Список заявок"
+// @Failure 400 {object} map[string]string "Неверный формат даты"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/all-amperage_applications [get]
 func (h *Handler) GetAllAmperageApplications(ctx *gin.Context) {
 	fromDate := ctx.Query("from-date")
 	var from = time.Time{}
@@ -42,6 +57,7 @@ func (h *Handler) GetAllAmperageApplications(ctx *gin.Context) {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
+	amperage_applications = h.filterAuthorizedAmperageApplications(amperage_applications, ctx)
 	resp := make([]serializer.AmperageApplicationJSON, 0, len(amperage_applications))
 	for _, c := range amperage_applications {
 		creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(c)
@@ -54,8 +70,24 @@ func (h *Handler) GetAllAmperageApplications(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// GetAmperageApplicationCart godoc
+// @Summary Получить корзину расчёта
+// @Description Возвращает информацию о текущей заявке-черновике на расчёт пользователя
+// @Tags amperage_applications
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Данные корзины заявки-черновика"
+// @Failure 400 {object} map[string]string "Неверный запрос"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/amperage_application-cart [get]
 func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
-	devices_count := h.Repository.GetAmperageApplicationCount(uint(h.Repository.GetUserID()))
+	userID, err := getUserID(ctx)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	devices_count := h.Repository.GetAmperageApplicationCount(userID)
 
 	if devices_count == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -65,7 +97,7 @@ func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
 		return
 	}
 
-	amperage_application, err := h.Repository.CheckCurrentAmperageApplicationDraft(uint(h.Repository.GetUserID()))
+	amperage_application, err := h.Repository.CheckCurrentAmperageApplicationDraft(userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotAllowed) {
 			h.errorHandler(ctx, http.StatusUnauthorized, err)
@@ -86,6 +118,19 @@ func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
 	})
 }
 
+// GetAmperageApplication godoc
+// @Summary Получить заявку по ID
+// @Description Возвращает полную информацию о заявке
+// @Tags amperage_applications
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Success 200 {object} map[string]interface{} "Данные заявки с устройствами"
+// @Failure 400 {object} map[string]string "Неверный ID"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Заявка не найдено"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/{id} [get]
 func (h *Handler) GetAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -117,12 +162,33 @@ func (h *Handler) GetAmperageApplication(ctx *gin.Context) {
 		return
 	}
 
+	amperage_applicationDevices, _ := h.Repository.GetDevicesAmperageApplications(int(amperage_application.Amperage_Application_ID))
+
+	resp2 := make([]serializer.AmperageApplicationDeviceJSON, 0, len(amperage_applicationDevices))
+	for _, r := range amperage_applicationDevices{
+		resp2 = append(resp2, serializer.AmperageApplicationDeviceToJSON(r))
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"amperage_application": serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin),
 		"devices":   resp,
+		"amperage_applicationDevices": resp2,
 	})
 }
 
+// FormAmperageApplication godoc
+// @Summary Сформировать заявку
+// @Description Переводит заявку в статус "formed"
+// @Tags amperage_applications
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Success 200 {object} serializer.AmperageApplicationJSON "Сформированная заявка"
+// @Failure 400 {object} map[string]string "Неверный запрос"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Заявка не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/{id}/form-amperage_application [put]
 func (h *Handler) FormAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -154,6 +220,20 @@ func (h *Handler) FormAmperageApplication(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
 }
 
+// EditAmperageApplication godoc
+// @Summary Изменить заявка
+// @Description Обновляет данные заявки
+// @Tags amperage_applications
+// @Accept json
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Param amperage_applicatio body serializer.AmperageApplicationJSON true "Новые данные заявки"
+// @Success 200 {object} serializer.AmperageApplicationJSON "Обновленная заявка"
+// @Failure 400 {object} map[string]string "Неверные данные"
+// @Failure 404 {object} map[string]string "Заявка не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/{id}/edit-amperage_application [put]
 func (h *Handler) EditAmperageApplication(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -187,6 +267,19 @@ func (h *Handler) EditAmperageApplication(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
 }
 
+// DeleteAmperageApplication godoc
+// @Summary Удалить заявка
+// @Description Выполняет логическое удаление заявки
+// @Tags amperage_applications
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Success 200 {object} map[string]string "Статус удаления"
+// @Failure 400 {object} map[string]string "Неверный запрос"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Заявка не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/{id}/delete-amperage_application [delete]
 func (h *Handler) DeleteAmperageApplication(ctx *gin.Context){
 	idStr := ctx.Param("id")
 	amperage_application_id, err := strconv.Atoi(idStr)
@@ -212,7 +305,28 @@ func (h *Handler) DeleteAmperageApplication(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, gin.H{"message": "Amperage application deleted"})
 }
 
+// FinishAmperageApplication godoc
+// @Summary Завершить заявку
+// @Description Изменяет статус заявки (только для модераторов)
+// @Tags amperage_applications
+// @Accept json
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Param status body serializer.StatusJSON true "Новый статус"
+// @Success 200 {object} serializer.AmperageApplicationJSON "Результат модерации"
+// @Failure 400 {object} map[string]string "Неверный запрос"
+// @Failure 403 {object} map[string]string "Доступ запрещен"
+// @Failure 404 {object} map[string]string "Заявка не найдена"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Security ApiKeyAuth
+// @Router /amperage_application/{id}/finish-amperage_application [put]
 func (h *Handler) FinishAmperageApplication(ctx *gin.Context) {
+	userID, err := getUserID(ctx)
+    if err != nil {
+        h.errorHandler(ctx, http.StatusBadRequest, err)
+        return
+    }
+
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -226,7 +340,22 @@ func (h *Handler) FinishAmperageApplication(ctx *gin.Context) {
 		return
 	}
 
-	amperage_application, err := h.Repository.FinishAmperageApplication(id, statusJSON.Status)
+	user, err := h.Repository.GetUserByID(userID)
+    if err != nil {
+        if errors.Is(err, repository.ErrNotFound) {
+            h.errorHandler(ctx, http.StatusNotFound, err)
+        } else {
+            h.errorHandler(ctx, http.StatusInternalServerError, err)
+        }
+        return
+    }
+    
+    if !user.IsModerator {
+        h.errorHandler(ctx, http.StatusForbidden, errors.New("требуются права модератора"))
+        return
+    }
+
+	amperage_application, err := h.Repository.FinishAmperageApplication(id, statusJSON.Status, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -245,4 +374,51 @@ func (h *Handler) FinishAmperageApplication(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, serializer.AmperageApplicationToJSON(amperage_application, creatorLogin, moderatorLogin))
+}
+
+func (h *Handler) filterAuthorizedAmperageApplications(amperage_applicaions []ds.AmperageApplication, ctx *gin.Context) []ds.AmperageApplication {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return []ds.AmperageApplication{}
+	}
+
+	user, err := h.Repository.GetUserByID(userID)
+	if err == repository.ErrNotFound {
+		return []ds.AmperageApplication{}
+	}
+	if err != nil {
+		return []ds.AmperageApplication{}
+	}
+
+	if user.IsModerator {
+		return amperage_applicaions
+	}
+
+	var userAmperage_Applications []ds.AmperageApplication
+    for _, amperage_application := range amperage_applicaions {
+        fmt.Println(amperage_application.Amperage_Application_ID)
+        if amperage_application.Creator_ID == userID {
+            userAmperage_Applications = append(userAmperage_Applications, amperage_application)
+        }
+    }
+    
+    return userAmperage_Applications
+
+}
+
+func (h *Handler) hasAccessToAmperageApplication(creatorID uuid.UUID, ctx *gin.Context) bool {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return false
+	}
+
+	user, err := h.Repository.GetUserByID(userID)
+	if err == repository.ErrNotFound {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+
+	return creatorID == userID || user.IsModerator
 }

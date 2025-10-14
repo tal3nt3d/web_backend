@@ -1,17 +1,21 @@
 package serializer
 
-import "web_backend/internal/app/ds"
+import (
+	"web_backend/internal/app/ds"
+
+	"github.com/google/uuid"
+)
 
 type UserJSON struct {
-	ID 			uint	`json:"id"` 
-	Login 		string	`json:"login"`
-	Password 	string	`json:"password"`
-	IsModerator bool 	`json:"is_moderator"`
+	ID 			uuid.UUID	`json:"id"` 
+	Login 		string		`json:"login"`
+	Password 	string		`json:"password"`
+	IsModerator bool 		`json:"is_moderator"`
 }
 
 func UserToJSON(user ds.Users) UserJSON {
 	return UserJSON{
-		ID: 			uint(user.User_ID),
+		ID: 			uuid.UUID(user.User_ID),
 		Login:			user.Login,
 		Password: 		user.Password,
 		IsModerator: 	user.IsModerator,

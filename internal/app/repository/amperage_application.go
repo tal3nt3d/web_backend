@@ -7,7 +7,7 @@ import (
 	"time"
 	"web_backend/internal/app/ds"
 	"web_backend/internal/app/serializer"
-
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -71,11 +71,7 @@ func (r *Repository) GetAmperageApplicationDevices(id int) ([]ds.Device, ds.Ampe
 	return devices, amperage_application, nil
 }
 
-func (r *Repository) CheckCurrentAmperageApplicationDraft(creator_ID uint) (ds.AmperageApplication, error) {
-	// if creatorID == 0 {
-	//     return ds.Research{}, fmt.Errorf("%w: user not authenticated", ErrNotAllowed)
-	// }
-
+func (r *Repository) CheckCurrentAmperageApplicationDraft(creator_ID uuid.UUID) (ds.AmperageApplication, error) {
 	var amperage_application ds.AmperageApplication
 	res := r.db.Where("creator_id = ? AND status = ?", creator_ID, "draft").Limit(1).Find(&amperage_application)
 	if res.Error != nil {
@@ -86,11 +82,7 @@ func (r *Repository) CheckCurrentAmperageApplicationDraft(creator_ID uint) (ds.A
 	return amperage_application, nil
 }
 
-func (r *Repository) GetAmperageApplicationDraft(creator_ID uint) (ds.AmperageApplication, bool, error) {
-	// if creatorID == 0 {
-	//     return ds.Research{}, false, fmt.Errorf("%w: user not authenticated", ErrNotAllowed)
-	// }
-
+func (r *Repository) GetAmperageApplicationDraft(creator_ID uuid.UUID) (ds.AmperageApplication, bool, error) {
 	amperage_application, err := r.CheckCurrentAmperageApplicationDraft(creator_ID)
 	if errors.Is(err, ErrNoDraft) {
 		amperage_application = ds.AmperageApplication{
@@ -109,11 +101,7 @@ func (r *Repository) GetAmperageApplicationDraft(creator_ID uint) (ds.AmperageAp
 	return amperage_application, true, nil
 }
 
-func (r *Repository) GetAmperageApplicationCount(creator_ID uint) int64 {
-	if creator_ID == 0 {
-		return 0
-	}
-
+func (r *Repository) GetAmperageApplicationCount(creator_ID uuid.UUID) int64 {
 	var count int64
 	amperage_application, err := r.CheckCurrentAmperageApplicationDraft(creator_ID)
 	if err != nil {
@@ -136,16 +124,6 @@ func (r *Repository) GetSingleAmperageApplication(id int) (ds.AmperageApplicatio
 		return ds.AmperageApplication{}, errors.New("неверное id, должно быть >= 0")
 	}
 
-	// userId := r.GetUserID()
-	// if userId == 0 {
-	//     return ds.Research{}, fmt.Errorf("%w: пользователь не авторизирован", ErrNotAllowed)
-	// }
-
-	// user, err := r.GetUserByID(userId)
-	// if err != nil {
-	// 	return ds.Research{}, err
-	// }
-
 	var amperage_application ds.AmperageApplication
 	err := r.db.Where("amperage_application_id = ?", id).First(&amperage_application).Error
 	if err != nil {
@@ -164,15 +142,6 @@ func (r *Repository) FormAmperageApplication(amperage_application_id int, status
 	if err != nil {
 		return ds.AmperageApplication{}, err
 	}
-
-	// user, err := r.GetUserByID(r.GetUserID())
-	// if err != nil{
-	// 	return ds.Research{}, fmt.Errorf("%w: пользователь на авторизирован", ErrNotAllowed)
-	// }
-
-	// if research.CreatorID != r.userId && !user.IsModerator{
-	// 	return ds.Research{}, fmt.Errorf("%w: у вас нет прав чтобы эта заявка имела статус %s", ErrNotAllowed, status)
-	// }
 
 	if amperage_application.Status != "draft" {
 		return ds.AmperageApplication{}, fmt.Errorf("эта заявка не может быть %s", status)
@@ -226,32 +195,23 @@ func (r *Repository) EditAmperageApplication(id int, amperage_applicationJSON se
 	return amperage_application, nil
 }
 
-func CalculateDeviceAmperage(power float64) (float64, error) {
+func CalculateDeviceAmperage(power float64, amount float64) (float64, error) {
 	if power < 0 {
 		return 0, errors.New("неправильная мощность")
 	}
-	return float64(power) * 1000 / 220, nil
+	return float64(power) * 1000 * amount / 220, nil
 }
 
-func (r *Repository) FinishAmperageApplication(id int, status string) (ds.AmperageApplication, error) {
+func (r *Repository) FinishAmperageApplication(id int, status string, currentUserID uuid.UUID) (ds.AmperageApplication, error) {
 	if status != "completed" && status != "rejected" {
 		return ds.AmperageApplication{}, errors.New("неверный статус")
-	}
-
-	user, err := r.GetUserByID(r.GetUserID())
-	if err != nil {
-		return ds.AmperageApplication{}, err
-	}
-
-	if !user.IsModerator {
-		return ds.AmperageApplication{}, fmt.Errorf("%w: вы не модератор", ErrNotAllowed)
 	}
 
 	amperage_application, err := r.GetSingleAmperageApplication(id)
 	if err != nil {
 		return ds.AmperageApplication{}, err
 	} else if amperage_application.Status != "formed" {
-		return ds.AmperageApplication{}, fmt.Errorf("это исследование не может быть %s", status)
+		return ds.AmperageApplication{}, fmt.Errorf("этот расчёт не может быть %s", status)
 	}
 
 	err = r.db.Model(&amperage_application).Updates(ds.AmperageApplication{
@@ -260,7 +220,10 @@ func (r *Repository) FinishAmperageApplication(id int, status string) (ds.Ampera
 			Time:  time.Now(),
 			Valid: true,
 		},
-		Moderator_ID: uint(user.User_ID),
+		Moderator_ID: uuid.NullUUID{
+			UUID:  currentUserID,
+			Valid: true,
+		},
 	}).Error
 	if err != nil {
 		return ds.AmperageApplication{}, err
@@ -276,7 +239,7 @@ func (r *Repository) FinishAmperageApplication(id int, status string) (ds.Ampera
 			if err != nil {
 				return ds.AmperageApplication{}, err
 			}
-			device_amperage, err := CalculateDeviceAmperage(device.Dev_Power)
+			device_amperage, err := CalculateDeviceAmperage(device.Dev_Power, float64(amperage_applicationDevice.Amount))
 			if err != nil {
 				return ds.AmperageApplication{}, err
 			}

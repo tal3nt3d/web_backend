@@ -127,6 +127,15 @@ services:
     depends_on:
       - postgres
 
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis-data:/data    
+
 ## By default this config uses default local driver,
 ## For custom volumes replace with volume driver configuration.
 volumes:
@@ -139,5 +148,7 @@ volumes:
   data4-1:
   data4-2:
   postgres_data:
+  redis-data:
+    driver: local
 
   
