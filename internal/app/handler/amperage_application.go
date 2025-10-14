@@ -221,7 +221,7 @@ func (h *Handler) FormAmperageApplication(ctx *gin.Context) {
 }
 
 // EditAmperageApplication godoc
-// @Summary Изменить заявка
+// @Summary Изменить заявку
 // @Description Обновляет данные заявки
 // @Tags amperage_applications
 // @Accept json
@@ -268,7 +268,7 @@ func (h *Handler) EditAmperageApplication(ctx *gin.Context) {
 }
 
 // DeleteAmperageApplication godoc
-// @Summary Удалить заявка
+// @Summary Удалить заявку
 // @Description Выполняет логическое удаление заявки
 // @Tags amperage_applications
 // @Produce json
