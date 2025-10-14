@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   serializer.AmperageApplicationDeviceJSON:
     properties:
@@ -62,8 +63,17 @@ definitions:
       password:
         type: string
     type: object
+host: localhost:8080
 info:
-  contact: {}
+  contact:
+    email: support@amperage.com
+    name: API Support
+    url: http://localhost:8080
+  description: API для управления расчётами нагрузки
+  license:
+    name: MIT
+  title: Amperage Application API
+  version: "1.0"
 paths:
   /amperage_application/{id}:
     get:
@@ -961,4 +971,9 @@ paths:
       summary: Регистрация пользователя
       tags:
       - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

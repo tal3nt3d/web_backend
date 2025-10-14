@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"errors"
+	"net/http"
+	"web_backend/internal/app/repository"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"web_backend/internal/app/repository"
-	"errors"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 type Handler struct {
@@ -18,7 +22,7 @@ func NewHandler(r *repository.Repository) *Handler {
 }
 
 // RegisterHandler godoc
-// @title Amperage Calculation API
+// @title Amperage Application API
 // @version 1.0
 // @description API для управления расчётами нагрузки
 // @contact.name API Support
@@ -26,12 +30,12 @@ func NewHandler(r *repository.Repository) *Handler {
 // @contact.email support@amperage.com
 // @license.name MIT
 // @host localhost:8080
-// @BasePath /api
+// @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
 func (h *Handler) RegisterHandler(router *gin.Engine) {
-	api := router.Group("/api")
+	api := router.Group("/api/v1")
 
 	unauthorized := api.Group("/")
 	unauthorized.POST("/users/signup", h.CreateUser)
@@ -65,6 +69,12 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	moderator := api.Group("/")
 	moderator.Use(h.ModeratorMiddleware(true))
 	moderator.PUT("/amperage-calculation/:id/form", h.FormAmperageApplication)
+
+	swaggerURL := ginSwagger.URL("/swagger/doc.json")
+	router.Any("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerURL))
+	router.GET("/swagger", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+	})
 }
 
 func (h *Handler) RegisterStatic(router *gin.Engine) {
