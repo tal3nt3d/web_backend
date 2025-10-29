@@ -8,6 +8,7 @@ type DeviceJSON struct {
 	Title	 	string  `json:"title"`
 	Description string  `json:"description"`
 	Dev_Power 	float64	`json:"dev_power"`
+	Photo      	string  `json:"photo"`
 }
 
 func DeviceToJSON(device ds.Device) DeviceJSON {
@@ -17,6 +18,7 @@ func DeviceToJSON(device ds.Device) DeviceJSON {
 		Title: 			device.Title,
 		Description: 	device.Description,
 		Dev_Power: 		device.Dev_Power,
+		Photo: 			device.Photo,	
 	}
 }
 
@@ -26,5 +28,6 @@ func DeviceFromJSON(deviceJSON DeviceJSON) ds.Device {
 		Title: 			deviceJSON.Title,
 		Description: 	deviceJSON.Description,
 		Dev_Power: 		deviceJSON.Dev_Power,
+		Photo: 			deviceJSON.Photo,
 	}
 }
