@@ -42,6 +42,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	unauthorized.POST("/users/signin", h.SignIn)
 	unauthorized.GET("/devices", h.GetDevices)
 	unauthorized.GET("/device/:id", h.GetDevice)
+	unauthorized.GET("/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
 
 	authorized := api.Group("/")
 	authorized.Use(h.ModeratorMiddleware(false))
@@ -51,7 +52,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	authorized.POST("/device/:id/add-to-amperage_application", h.AddToAmperageApplication)
 	authorized.POST("/device/:id/add-photo", h.AddPhoto)
 
-	authorized.GET("/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
 	authorized.GET("/amperage_application/all-amperage_applications", h.GetAllAmperageApplications)
 	authorized.GET("/amperage_application/:id", h.GetAmperageApplication)
 	authorized.PUT("/amperage_application/:id/edit-amperage_application", h.EditAmperageApplication)

@@ -83,7 +83,10 @@ func (h *Handler) GetAllAmperageApplications(ctx *gin.Context) {
 func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
 	userID, err := getUserID(ctx)
 	if err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+		ctx.JSON(http.StatusOK, gin.H{
+			"id": -1,
+			"devices_count": 0,
+		})
 		return
 	}
 
@@ -91,8 +94,8 @@ func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
 
 	if devices_count == 0 {
 		ctx.JSON(http.StatusOK, gin.H{
-			"status":          "no_draft",
-			"devices_count": devices_count,
+			"id": -1,
+			"devices_count": 0,
 		})
 		return
 	}
@@ -103,7 +106,7 @@ func (h *Handler) GetAmperageApplicationCart(ctx *gin.Context){
 			h.errorHandler(ctx, http.StatusUnauthorized, err)
 		} else if errors.Is(err, repository.ErrNoDraft) {
 			ctx.JSON(http.StatusOK, gin.H{
-				"status":          "no_draft",
+				"id": -1,
 				"devices_count": 0,
 			})
 		} else {
