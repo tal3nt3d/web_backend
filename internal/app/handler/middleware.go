@@ -14,6 +14,23 @@ const prefix = "Bearer"
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		allowedOrigins := []string{
+            "http://localhost:3000",
+            "tauri://localhost",
+            "http://tauri.localhost",
+            "http://localhost:8080",
+			"http://localhost:9000",
+			"http://*:9000",
+        }
+        
+        origin := c.Request.Header.Get("Origin")
+        for _, allowed := range allowedOrigins {
+            if origin == allowed {
+                c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+                break
+            }
+        }
+		
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Accept, Origin, Cache-Control, X-Requested-With")
