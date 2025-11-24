@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -98,6 +99,72 @@ func (h *Handler) ModeratorMiddleware(allowedRole bool) gin.HandlerFunc {
 		if allowedRole && !jwtIsModerator {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "forbidden"})
 			return
+		}
+
+		c.Set("user_id", userID)
+		c.Next()
+	}
+}
+
+func (h *Handler) WithOptionalAuthCheck() func(ctx *gin.Context) {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
+		prefix := "Bearer "
+
+		if tokenString == "" || !strings.HasPrefix(tokenString, prefix) {
+			c.Set("user_id", "")
+			c.Next()
+			return
+		}
+
+		tokenString = strings.TrimPrefix(tokenString, prefix)
+
+		blacklisted, err := h.Repository.IsTokenBlacklisted(context.Background(), tokenString)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"status": "error"})
+			return
+		}
+		if blacklisted {
+			c.Set("user_id", "")
+			c.Next()
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(os.Getenv("JWT_KEY")), nil
+		})
+
+		if err != nil || token == nil || !token.Valid {
+			c.Set("user_id", "")
+			c.Next()
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.Set("user_id", "")
+			c.Next()
+			return
+		}
+
+		userIDValue, exists := claims["user_id"]
+		if !exists || userIDValue == nil {
+			c.Set("user_id", "")
+			c.Next()
+			return
+		}
+
+		var userID string
+		switch v := userIDValue.(type) {
+		case string:
+			userID = v
+		case float64:
+			userID = fmt.Sprintf("%.0f", v)
+		default:
+			userID = fmt.Sprintf("%v", v)
 		}
 
 		c.Set("user_id", userID)

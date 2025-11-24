@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 	minioClient "web_backend/internal/app/minioClient"
@@ -45,6 +46,11 @@ func NewRepository(dsn string) (*Repository, error) {
 		DB: 0,
 	})
 
+	_, err = redis_client.Ping().Result()
+    if err != nil {
+        return nil, fmt.Errorf("failed to connect to Redis: %v", err)
+    }
+	
 	return &Repository{
 		db: db,
 		mc: mc,

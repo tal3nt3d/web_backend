@@ -44,10 +44,14 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	unauthorized.POST("/users/signin", h.SignIn)
 	unauthorized.GET("/devices", h.GetDevices)
 	unauthorized.GET("/device/:id", h.GetDevice)
-	unauthorized.GET("/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
+
+	optionalauthorized := api.Group("/")
+	optionalauthorized.Use(h.WithOptionalAuthCheck())
+	optionalauthorized.GET("/amperage_application/amperage_application-cart", h.GetAmperageApplicationCart)
 
 	authorized := api.Group("/")
 	authorized.Use(h.ModeratorMiddleware(false))
+	
 	authorized.POST("/device/create-device", h.CreateDevice)
 	authorized.PUT("/device/:id/edit-device", h.EditDevice)
 	authorized.DELETE("/device/:id/delete-device", h.DeleteDevice)
@@ -58,7 +62,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	authorized.GET("/amperage_application/:id", h.GetAmperageApplication)
 	authorized.PUT("/amperage_application/:id/edit-amperage_application", h.EditAmperageApplication)
 	authorized.PUT("/amperage_application/:id/form-amperage_application", h.FormAmperageApplication)
-	authorized.PUT("/amperage_application/:id/finish-amperage_application", h.FinishAmperageApplication)
 	authorized.DELETE("/amperage_application/:id/delete-amperage_application", h.DeleteAmperageApplication) 
 
 	authorized.DELETE("/dev_app/:device_id/:amperage_application_id", h.DeleteDeviceFromAmperageApplication)
@@ -70,7 +73,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 	moderator := api.Group("/")
 	moderator.Use(h.ModeratorMiddleware(true))
-	moderator.PUT("/amperage-calculation/:id/form", h.FormAmperageApplication)
+	moderator.PUT("/amperage_application/:id/finish-amperage_application", h.FinishAmperageApplication)
 
 	swaggerURL := ginSwagger.URL("/swagger/doc.json")
 	router.Any("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerURL))
