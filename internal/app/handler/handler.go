@@ -40,8 +40,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api := router.Group("/api/v1")
 
 	unauthorized := api.Group("/")
-	unauthorized.POST("/users/signup", h.CreateUser)
-	unauthorized.POST("/users/signin", h.SignIn)
+	unauthorized.POST("/signup", h.CreateUser)
+	unauthorized.POST("/signin", h.SignIn)
 	unauthorized.GET("/devices", h.GetDevices)
 	unauthorized.GET("/device/:id", h.GetDevice)
 

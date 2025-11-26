@@ -151,12 +151,6 @@ func (r *Repository) FormAmperageApplication(amperage_application_id int, status
 		if amperage_application.Amperage < 0 {
 			return ds.AmperageApplication{}, errors.New("вы не написали нагрузку системы")
 		}
-		amperage_applicationDevices, _ := r.GetDevicesAmperageApplications(int(amperage_application.Amperage_Application_ID))
-		for _, amperage_applicationDevices := range amperage_applicationDevices {
-			if amperage_applicationDevices.Notes == "" {
-				return ds.AmperageApplication{}, errors.New("вы не написали заметку")
-			}
-		}
 	}
 
 	err = r.db.Model(&amperage_application).Updates(ds.AmperageApplication{

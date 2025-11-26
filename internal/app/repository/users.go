@@ -6,7 +6,6 @@ import (
 	"time"
 	"web_backend/internal/app/ds"
 	"web_backend/internal/app/serializer"
-
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 )
@@ -68,6 +67,10 @@ func (r *Repository) SignIn(userJSON serializer.UserJSON) (string, error) {
 	user, err := r.GetUserByLogin(userJSON.Login)
 	if err != nil {
 		return "", err
+	}
+
+	if user.Password != userJSON.Password {
+		return "", errors.New("Неправильный пароль")
 	}
 
 	token, err := GenerateToken(user.User_ID, user.IsModerator)

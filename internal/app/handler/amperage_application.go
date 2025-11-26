@@ -230,7 +230,7 @@ func (h *Handler) FormAmperageApplication(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "ID заявки"
-// @Param amperage_applicatio body serializer.AmperageApplicationJSON true "Новые данные заявки"
+// @Param amperage_application body serializer.AmperageApplicationJSON true "Новые данные заявки"
 // @Success 200 {object} serializer.AmperageApplicationJSON "Обновленная заявка"
 // @Failure 400 {object} map[string]string "Неверные данные"
 // @Failure 404 {object} map[string]string "Заявка не найдена"

@@ -26,7 +26,7 @@ import (
 // @Success 201 {object} serializer.UserJSON "Пользователь создан"
 // @Failure 400 {object} map[string]string "Ошибка валидации или входных данных"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
-// @Router /users/signup [post]
+// @Router /signup [post]
 func (h *Handler) CreateUser(ctx *gin.Context) {
 	var userJSON serializer.UserJSON
 	if err := ctx.BindJSON(&userJSON); err != nil {
@@ -40,7 +40,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("Location", fmt.Sprintf("/users/%v", user.User_ID))
+	ctx.Header("Location", fmt.Sprintf("/%v", user.User_ID))
 	ctx.JSON(http.StatusCreated, serializer.UserToJSON(user))
 }
 
@@ -55,7 +55,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string "Неверный запрос"
 // @Failure 404 {object} map[string]string "Пользователь не найден"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
-// @Router /users/signin [post]
+// @Router /signin [post]
 func (h *Handler) SignIn(ctx *gin.Context) {
 	var userJSON serializer.UserJSON
 	if err := ctx.BindJSON(&userJSON); err != nil {
