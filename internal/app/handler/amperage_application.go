@@ -514,7 +514,7 @@ func (h *Handler) UpdateDeviceAmperage(ctx *gin.Context) {
         "message": "Нагрузка устройства обновлена успешно",
         "amperage_applicaion_id": amperage_applicaionId,
         "device_id": deviceId,
-        "amperage": amperage_applicaionId,
+        "amperage": deviceAmperage,
     })
 
 }

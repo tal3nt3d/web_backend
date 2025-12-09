@@ -247,7 +247,7 @@ func (r *Repository) FinishAmperageApplication(id int, status string, currentUse
 }
 
 func (r *Repository) calculateSingleDeviceAmperageAsync(amperage_applicaionId int, device *ds.Device, amperage_applicationDevice ds.AmperageApplicationDevices) {
-    asyncServiceURL := "http://localhost:8080/api/calculate-radius/"
+    asyncServiceURL := "http://192.168.195.38:8000/api/v1/calculate-amperage/"
     
     requestData := map[string]interface{}{
         "amperage_application_id": amperage_applicaionId,

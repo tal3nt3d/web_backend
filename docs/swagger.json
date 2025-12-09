@@ -211,7 +211,7 @@
                 "tags": [
                     "amperage_applications"
                 ],
-                "summary": "Удалить заявка",
+                "summary": "Удалить заявку",
                 "parameters": [
                     {
                         "type": "integer",
@@ -270,6 +270,78 @@
                 }
             }
         },
+        "/amperage_application/{id}/device_amperage": {
+            "put": {
+                "description": "Принимает результаты расчета нагрузки устройства от асинхронного сервиса",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "amperage_applications"
+                ],
+                "summary": "Обновить нагрузку устройства (для асинхронного сервиса)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID расчёта",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные нагрузки",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Нагрузка обновлена",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные данные",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (неверный токен)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Расчёт не найдено",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/amperage_application/{id}/edit-amperage_application": {
             "put": {
                 "security": [
@@ -287,7 +359,7 @@
                 "tags": [
                     "amperage_applications"
                 ],
-                "summary": "Изменить заявка",
+                "summary": "Изменить заявку",
                 "parameters": [
                     {
                         "type": "integer",
@@ -298,7 +370,7 @@
                     },
                     {
                         "description": "Новые данные заявки",
-                        "name": "amperage_applicatio",
+                        "name": "amperage_application",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -1088,7 +1160,7 @@
                 }
             }
         },
-        "/users/signin": {
+        "/signin": {
             "post": {
                 "description": "Принимает логин/пароль, возвращает jwt-токен в формате {\"token\":\"...\"}.",
                 "consumes": [
@@ -1152,53 +1224,7 @@
                 }
             }
         },
-        "/users/signout": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Удаляет токен текущего пользователя из хранилища. Возвращает {\"status\":\"signed_out\"}.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Выход (удаление токена)",
-                "responses": {
-                    "200": {
-                        "description": "status",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Проблема с получением user_id",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка при удалении токена",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/signup": {
+        "/signup": {
             "post": {
                 "description": "Регистрирует нового пользователя. Возвращает URL созданного ресурса в Location и тело созданного пользователя.",
                 "consumes": [
@@ -1240,6 +1266,52 @@
                     },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/signout": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Удаляет токен текущего пользователя из хранилища. Возвращает {\"status\":\"signed_out\"}.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Выход (удаление токена)",
+                "responses": {
+                    "200": {
+                        "description": "status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Проблема с получением user_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка при удалении токена",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1468,6 +1540,9 @@
                 },
                 "is_delete": {
                     "type": "boolean"
+                },
+                "photo": {
+                    "type": "string"
                 },
                 "title": {
                     "type": "string"
