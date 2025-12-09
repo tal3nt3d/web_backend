@@ -1,12 +1,16 @@
 package repository
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 	"web_backend/internal/app/ds"
 	"web_backend/internal/app/serializer"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -231,20 +235,74 @@ func (r *Repository) FinishAmperageApplication(id int, status string, currentUse
 		for _, amperage_applicationDevice := range amperage_applicationsDevice {
 			device, err := r.GetDevice(int(amperage_applicationDevice.Device_ID))
 			if err != nil {
-				return ds.AmperageApplication{}, err
+				logrus.Errorf("Ошибка получения устройства %d: %v", amperage_applicationDevice.Device_ID, err)
+				continue
 			}
-			device_amperage, err := CalculateDeviceAmperage(device.Dev_Power, float64(amperage_applicationDevice.Amount))
-			if err != nil {
-				return ds.AmperageApplication{}, err
-			}
-			err = r.db.Model(&amperage_applicationDevice).Updates(ds.AmperageApplicationDevices{
-				Amperage: float64(device_amperage),
-			}).Error
-			if err != nil {
-				return ds.AmperageApplication{}, err
-			}
+			go r.calculateSingleDeviceAmperageAsync(int(amperage_application.Amperage_Application_ID), device, amperage_applicationDevice)
 		}
+		logrus.Infof("Начато асинхронное вычислени нагрузки для расчёта %d, устройство: %d", int(amperage_application.Amperage_Application_ID), len(amperage_applicationsDevice))
 	}
 
 	return amperage_application, nil
+}
+
+func (r *Repository) calculateSingleDeviceAmperageAsync(amperage_applicaionId int, device *ds.Device, amperage_applicationDevice ds.AmperageApplicationDevices) {
+    asyncServiceURL := "http://localhost:8080/api/calculate-radius/"
+    
+    requestData := map[string]interface{}{
+        "amperage_application_id": amperage_applicaionId,
+        "device_id":   device.Device_ID,
+        "dev_power": device.Dev_Power,
+        "amount": amperage_applicationDevice.Amount,
+    }
+
+    jsonData, err := json.Marshal(requestData)
+    if err != nil {
+        logrus.Errorf("Ошибка при сортировке данных запроса для устройства %d: %v", device.Device_ID, err)
+        return
+    }
+
+    resp, err := http.Post(asyncServiceURL, "application/json", bytes.NewBuffer(jsonData))
+    if err != nil {
+        logrus.Errorf("Ошибка отправки запроса в асинхронный сервис для устройства %d: %v", device.Device_ID, err)
+        return
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != 202 {
+        logrus.Errorf("Асинхронный сервис вернул статус %d для устройства %d", resp.StatusCode, device.Device_ID)
+        return
+    }
+
+    logrus.Infof("Успешно отправлен запрос в асинхронный сервис для расчёта %d, устройство %d", amperage_applicaionId, device.Device_ID)
+}
+
+func (r *Repository) UpdateDeviceAmperage(amperage_applicaionId int, deviceId int, amperage float64) error {
+    var AmperageApplicationDevices ds.AmperageApplicationDevices
+    err := r.db.Where("amperage_application_id = ? AND device_id = ?", amperage_applicaionId, deviceId).First(&AmperageApplicationDevices).Error
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return fmt.Errorf("%w: связь устройства с расчётом не найдена", ErrNotFound)
+        }
+        return err
+    }
+
+    err = r.db.Model(&AmperageApplicationDevices).Update("amperage", amperage).Error
+    if err != nil {
+        return err
+    }
+
+    logrus.Printf("Обновлена нагрузка: amperage_application=%d, device=%d, amperage=%.2f", amperage_applicaionId, deviceId, amperage)
+    return nil
+}
+
+func (r *Repository) GetCalculatedDevicesCount(amperage_applicaionId int) (int, error) {
+    var count int64
+    err := r.db.Model(&ds.AmperageApplicationDevices{}).
+        Where("amperage_application_id = ? AND amperage IS NOT NULL AND amperage > 0", amperage_applicaionId).
+        Count(&count).Error
+    if err != nil {
+        return 0, err
+    }
+    return int(count), nil
 }

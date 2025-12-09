@@ -58,14 +58,29 @@ func (h *Handler) GetAllAmperageApplications(ctx *gin.Context) {
 		return
 	}
 	amperage_applications = h.filterAuthorizedAmperageApplications(amperage_applications, ctx)
-	resp := make([]serializer.AmperageApplicationJSON, 0, len(amperage_applications))
-	for _, c := range amperage_applications {
-		creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(c)
+	type AmperageApplicationWithStats struct{
+		serializer.AmperageApplicationJSON
+		TotalDevices int `json:"total_devices"`
+		CalculatedDevices int `json:"calculated_devices"`
+	}
+	resp := make([]AmperageApplicationWithStats, 0, len(amperage_applications))
+	for _, amperage_applicaion := range amperage_applications {
+		creatorLogin, moderatorLogin, err := h.Repository.GetModeratorAndCreatorLogin(amperage_applicaion)
 		if err != nil {
 			h.errorHandler(ctx, http.StatusInternalServerError, err)
 			return
 		}
-		resp = append(resp, serializer.AmperageApplicationToJSON(c, creatorLogin, moderatorLogin))
+		devices_amperage_applications, _ := h.Repository.GetDevicesAmperageApplications(int(amperage_applicaion.Amperage_Application_ID))
+		totalDevices := len(devices_amperage_applications)
+		calculatedDevices, _ := h.Repository.GetCalculatedDevicesCount(int(amperage_applicaion.Amperage_Application_ID))
+
+		amperage_applicaion_with_stats := AmperageApplicationWithStats{
+			AmperageApplicationJSON: serializer.AmperageApplicationToJSON(amperage_applicaion, creatorLogin, moderatorLogin),
+			TotalDevices: totalDevices,
+			CalculatedDevices: calculatedDevices,
+		}
+
+		resp = append(resp, amperage_applicaion_with_stats)
 	}
 	ctx.JSON(http.StatusOK, resp)
 }
@@ -424,4 +439,82 @@ func (h *Handler) hasAccessToAmperageApplication(creatorID uuid.UUID, ctx *gin.C
 	}
 
 	return creatorID == userID || user.IsModerator
+}
+
+// UpdateDeviceAmperage godoc
+// @Summary Обновить нагрузку устройства (для асинхронного сервиса)
+// @Description Принимает результаты расчета нагрузки устройства от асинхронного сервиса
+// @Tags amperage_applications
+// @Accept json
+// @Produce json
+// @Param id path int true "ID расчёта"
+// @Param data body map[string]interface{} true "Данные нагрузки"
+// @Success 200 {object} map[string]string "Нагрузка обновлена"
+// @Failure 400 {object} map[string]string "Неверные данные"
+// @Failure 403 {object} map[string]string "Доступ запрещен (неверный токен)"
+// @Failure 404 {object} map[string]string "Расчёт не найдено"
+// @Router /amperage_application/{id}/device_amperage [put]
+func (h *Handler) UpdateDeviceAmperage(ctx *gin.Context) {
+    authHeader := ctx.GetHeader("Authorization")
+    if authHeader != "secret123" {
+        ctx.JSON(http.StatusForbidden, gin.H{
+            "status": "error",
+            "description": "доступ запрещен",
+        })
+        return
+    }
+
+    idStr := ctx.Param("id")
+    amperage_applicaionId, err := strconv.Atoi(idStr)
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status": "error", 
+            "description": "неверный ID расчёта",
+        })
+        return
+    }
+
+    var requestData map[string]interface{}
+    if err := ctx.BindJSON(&requestData); err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status": "error",
+            "description": "неверный формат данных",
+        })
+        return
+    }
+
+    deviceId, hasDeviceId := requestData["device_id"].(float64)
+    deviceAmperage, hasAmperage := requestData["amperage"].(float64)
+
+    if !hasDeviceId || !hasAmperage {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "status": "error",
+            "description": "device_id и amperage обязательны",
+        })
+        return
+    }
+
+    err = h.Repository.UpdateDeviceAmperage(amperage_applicaionId, int(deviceId), deviceAmperage)
+    if err != nil {
+        if errors.Is(err, repository.ErrNotFound) {
+            ctx.JSON(http.StatusNotFound, gin.H{
+                "status": "error",
+                "description": "расчёт не найден",
+            })
+        } else {
+            ctx.JSON(http.StatusInternalServerError, gin.H{
+                "status": "error",
+                "description": "внутренняя ошибка сервера",
+            })
+        }
+        return
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{
+        "message": "Нагрузка устройства обновлена успешно",
+        "amperage_applicaion_id": amperage_applicaionId,
+        "device_id": deviceId,
+        "amperage": amperage_applicaionId,
+    })
+
 }
